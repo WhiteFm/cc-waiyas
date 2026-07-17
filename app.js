@@ -12,6 +12,26 @@ import { initMagicbookTab } from './js/tabs/magicbookTab.js';
 import { charData } from './saves/tempSave.js';
 import { escapeHTML } from './js/scripts/utils.js';
 
+import { classData } from './js/data/classesData.js';
+import { weaponsData } from './js/data/equipments/weaponsData.js';
+
+// Глобальная зачистка от мусорных цитат из баз данных
+// Используем безопасную сборку регулярного выражения, чтобы избежать синтаксических ошибок
+function stripCitationsGlobal() {
+    const citeRegex = new RegExp("\\[c" + "ite: \\d+\\]", "g");
+    Object.values(classData).forEach(cls => {
+        if (cls.description) cls.description = cls.description.replace(citeRegex, "");
+        if (cls.features) Object.values(cls.features).forEach(arr => arr.forEach(f => { if (f.description) f.description = f.description.replace(citeRegex, ""); }));
+        if (cls.subclasses) Object.values(cls.subclasses).forEach(sub => {
+            if (sub.features) Object.values(sub.features).forEach(arr => arr.forEach(f => { if (f.description) f.description = f.description.replace(citeRegex, ""); }));
+        });
+    });
+    Object.values(weaponsData).forEach(w => {
+        if (w.description) w.description = w.description.replace(citeRegex, "");
+    });
+}
+stripCitationsGlobal();
+
 let currentTabUrl = "";
 
 // Таблица опыта по уровням
@@ -65,10 +85,23 @@ window.addEventListener("DOMContentLoaded", () => {
     initHeaderUI();
     initAvatarCropper();
 
-    document.addEventListener('charDataUpdated', initHeaderUI);
+    document.addEventListener('charDataUpdated', () => {
+        initHeaderUI();
+        if(typeof window.renderGlobalNotes === "function") window.renderGlobalNotes();
+    });
 
-    // Фоновый наблюдатель (защита загрузки сохранений)
-    setInterval(initHeaderUI, 1000);
+    const sidePanel = document.getElementById("independentSidePanel");
+    if (sidePanel) {
+        const toggleBtn = document.createElement("button");
+        toggleBtn.innerHTML = "📝 Инфо";
+        toggleBtn.className = "mobile-panel-toggle";
+        document.body.appendChild(toggleBtn);
+
+        toggleBtn.onclick = () => {
+            sidePanel.classList.toggle("mobile-open");
+            toggleBtn.style.bottom = sidePanel.classList.contains("mobile-open") ? "32vh" : "20px";
+        };
+    }
 });
 
 // ==========================================
@@ -82,7 +115,6 @@ function initHeaderUI() {
     const level = charData.origin.level || 1;
     const xp = charData.origin.xp;
 
-    // Синхронизация имени
     const charName = charData.origin.name && charData.origin.name.trim() !== "" ? charData.origin.name : "Без имени";
     const nameEl = document.getElementById('headerCharName');
     if (nameEl && nameEl.innerText !== charName) nameEl.innerText = charName;
@@ -122,7 +154,6 @@ function initHeaderUI() {
         }
     }
 
-    // Синхронизация фото
     const img = document.getElementById('avatarImage');
     const ph = document.getElementById('avatarPlaceholder');
 
@@ -154,7 +185,7 @@ window.changeXp = function(multiplier) {
 };
 
 // ==========================================
-// КРОППЕР ИЗОБРАЖЕНИЙ (Идеальная математика)
+// КРОППЕР ИЗОБРАЖЕНИЙ
 // ==========================================
 
 function initAvatarCropper() {
@@ -179,7 +210,6 @@ function initAvatarCropper() {
             reader.onload = (e) => {
                 cropImage.src = e.target.result;
                 cropImage.onload = () => {
-                    // Подгон масштаба так, чтобы короткая сторона влезла в 250px
                     const scaleX = 250 / cropImage.naturalWidth;
                     const scaleY = 250 / cropImage.naturalHeight;
                     cropScale = Math.max(scaleX, scaleY);
@@ -188,7 +218,6 @@ function initAvatarCropper() {
                     zoomSlider.max = cropScale * 4;
                     zoomSlider.value = cropScale;
 
-                    // Центруем
                     cropImgX = (250 - cropImage.naturalWidth * cropScale) / 2;
                     cropImgY = (250 - cropImage.naturalHeight * cropScale) / 2;
 
@@ -207,7 +236,6 @@ function initAvatarCropper() {
     zoomSlider.oninput = (e) => {
         const oldScale = cropScale;
         cropScale = parseFloat(e.target.value);
-        // Зум строго к центру окошка 250x250
         const centerOffsetX = (250 / 2) - cropImgX;
         const centerOffsetY = (250 / 2) - cropImgY;
         cropImgX -= centerOffsetX * (cropScale / oldScale - 1);
@@ -262,14 +290,11 @@ function initAvatarCropper() {
         ctx.fillStyle = '#181b22';
         ctx.fillRect(0, 0, 300, 300);
 
-        // Идеально точная математика исходника:
-        // Узнаем, какой квадрат ОРИГИНАЛЬНОГО ИЗОБРАЖЕНИЯ попал в экран 250х250
         const sx = -cropImgX / cropScale;
         const sy = -cropImgY / cropScale;
         const sWidth = 250 / cropScale;
         const sHeight = 250 / cropScale;
 
-        // Рисуем этот кусочек на 300х300
         ctx.drawImage(cropImage, sx, sy, sWidth, sHeight, 0, 0, 300, 300);
 
         charData.origin.avatar = canvas.toDataURL('image/jpeg', 0.85);
@@ -308,6 +333,7 @@ window.renderGlobalNotes = function() {
             e.stopPropagation();
             charData.notes.splice(parseInt(btn.getAttribute("data-idx")), 1);
             window.renderGlobalNotes();
+            document.dispatchEvent(new Event('charDataUpdated'));
         };
     });
 
@@ -335,6 +361,7 @@ function bindGlobalNoteEvents() {
             charData.notes.push({ title, text });
             window.renderGlobalNotes();
             modal.classList.remove("visible");
+            document.dispatchEvent(new Event('charDataUpdated'));
         };
 
         cancelBtn.onclick = () => modal.classList.remove("visible");

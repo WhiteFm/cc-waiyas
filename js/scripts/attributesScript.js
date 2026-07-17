@@ -39,7 +39,7 @@ function checkSoftRequirements(feat, key) {
     return { ok: true, reason: "" };
 }
 
-function grantFeatInstance(key, feat, choiceData = {}) {
+export function grantFeatInstance(key, feat, choiceData = {}) {
     if (!charData.selectedFeats[key]) charData.selectedFeats[key] = { instances: [] };
     const instance = { ...choiceData };
 
@@ -84,7 +84,7 @@ function grantFeatInstance(key, feat, choiceData = {}) {
     if (instance.addedTools && instance.addedTools.length > 0) updateInstrumentsUI();
 }
 
-function revertFeatInstance(instance) {
+export function revertFeatInstance(instance) {
     if (!instance) return;
     if (instance.oldArmor) Object.keys(instance.oldArmor).forEach(a => charData.proficiencies.armor[a] = instance.oldArmor[a]);
     if (instance.oldWeapons) Object.keys(instance.oldWeapons).forEach(w => charData.proficiencies.weapon[w] = instance.oldWeapons[w]);
@@ -144,7 +144,6 @@ function getDynamicFeatAbilities(feat, instance = {}) {
     });
 }
 
-// ==== РЕНДЕР 1-Й ВКЛАДКИ (Все умения: Единоразовые, Активные, Пассивные) ====
 export function renderAssignedFeats() {
     const badgesContainer = document.getElementById("selectedFeatsList");
     const activeContainer = document.getElementById("activeFeaturesList");
@@ -159,14 +158,16 @@ export function renderAssignedFeats() {
 
     const statNames = { str: "СИЛ", dex: "ЛОВ", con: "ТЕЛ", int: "ИНТ", wis: "МУД", cha: "ХАР" };
 
-    // Умный сортировщик по типу
     const processFeature = (name, source, desc, type) => {
         const safeDesc = window.escapeHTML ? window.escapeHTML(desc) : desc.replace(/"/g, '&quot;');
         const maxCharges = calculateFeatureCharges(name);
 
-        let category = "passive";
-        if (type === "oneTime") category = "oneTime";
-        else if (maxCharges > 0) category = "active";
+        // ФИКС: Умная категоризация с учетом базы
+        let category = type;
+        if (category !== "oneTime" && category !== "active" && category !== "passive") {
+            category = maxCharges > 0 ? "active" : "passive";
+        }
+        if (maxCharges > 0 && category !== "oneTime") category = "active";
 
         const color = category === 'oneTime' ? '#cbd5e1' : (category === 'active' ? 'var(--accent-yellow)' : 'var(--accent-success)');
         const card = `
@@ -181,7 +182,6 @@ export function renderAssignedFeats() {
         else if (category === "oneTime") oneTimeHtml += card;
     };
 
-    // 1. ЧЕРТЫ
     Object.keys(charData.selectedFeats).forEach(key => {
         const featState = charData.selectedFeats[key];
         const feat = featsData[key];
@@ -208,7 +208,6 @@ export function renderAssignedFeats() {
 
     const lvl = charData.origin.level || 1;
 
-    // 2. РАСОВЫЕ ОСОБЕННОСТИ
     const raceKey = charData.origin.raceKey;
     const raceObj = racesData[raceKey];
     if (raceObj && raceKey !== "none") {
@@ -217,7 +216,6 @@ export function renderAssignedFeats() {
         });
     }
 
-    // 3. КЛАССОВЫЕ ОСОБЕННОСТИ
     const classFeatures = getDynamicClassFeatures(charData.origin.classKey, charData.origin.subclassKey, lvl);
     classFeatures.forEach(cf => {
         processFeature(cf.name, cf.sourceName, cf.description, cf.type);
@@ -277,10 +275,6 @@ export function applyFeatBonuses() {
     updateFeatsSelect();
     renderAssignedFeats();
 }
-
-// ==========================================
-// УНИВЕРСАЛЬНОЕ МОДАЛЬНОЕ ОКНО ЧЕРТ
-// ==========================================
 
 export function bindAttributesEvents() {
     const addBtn = document.getElementById("addFeatBtn");

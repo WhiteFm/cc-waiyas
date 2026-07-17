@@ -32,9 +32,9 @@
             </div>
 
             <div style="grid-column: 1; width: 100%;">
-                <div class="equipped-slot interactive-node" id="slot_rings_0">
-                    <label>Кольцо Правое</label>
-                    <div class="equipped-item-display" id="disp_rings_0">Пусто</div>
+                <div class="equipped-slot interactive-node" id="slot_bracers">
+                    <label>Наручи</label>
+                    <div class="equipped-item-display" id="disp_bracers">Пусто</div>
                 </div>
             </div>
             <div style="grid-column: 2; width: 100%;">
@@ -44,16 +44,23 @@
                 </div>
             </div>
             <div style="grid-column: 3; width: 100%;">
-                <div class="equipped-slot interactive-node" id="slot_rings_1">
-                    <label>Кольцо Левое</label>
-                    <div class="equipped-item-display" id="disp_rings_1">Пусто</div>
-                </div>
-            </div>
-
-            <div style="grid-column: 2; width: 100%;">
                 <div class="equipped-slot interactive-node" id="slot_boots">
                     <label>Поножи</label>
                     <div class="equipped-item-display" id="disp_boots">Пусто</div>
+                </div>
+            </div>
+
+            <div style="grid-column: 1; width: 100%;">
+                <div class="equipped-slot interactive-node" id="slot_rings_0">
+                    <label>Кольцо Правое</label>
+                    <div class="equipped-item-display" id="disp_rings_0">Пусто</div>
+                </div>
+            </div>
+
+            <div style="grid-column: 3; width: 100%;">
+                <div class="equipped-slot interactive-node" id="slot_rings_1">
+                    <label>Кольцо Левое</label>
+                    <div class="equipped-item-display" id="disp_rings_1">Пусто</div>
                 </div>
             </div>
 
@@ -61,8 +68,9 @@
 
         <h2 class="font-group-1">Оружие и Щиты</h2>
 
-        <div style="margin-bottom: 25px; text-align: center;">
-            <div style="margin-bottom: 20px;">
+        <div style="margin-bottom: 25px; text-align: center; position: relative;">
+            <button id="swapWeaponsBtn" class="step-btn" style="position: absolute; right: 0; top: -45px; width: auto; padding: 0 15px; font-weight: bold; background: var(--panel-inner); border-color: var(--accent-yellow); color: var(--accent-yellow);">🔄 Сменить активный</button>
+            <div id="weapon_set_1_wrap" style="margin-bottom: 20px; padding: 10px; border-radius: 8px; border: 2px solid transparent; transition: 0.3s;">
                 <h3 class="font-group-2" style="color: var(--accent-yellow); margin-bottom: 8px;">Набор 1</h3>
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
                     <div class="equipped-slot interactive-node" id="slot_w_set1_main">
@@ -76,7 +84,7 @@
                 </div>
             </div>
 
-            <div>
+            <div id="weapon_set_2_wrap" style="padding: 10px; border-radius: 8px; border: 2px solid transparent; transition: 0.3s;">
                 <h3 class="font-group-2" style="color: var(--accent-yellow); margin-bottom: 8px;">Набор 2</h3>
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
                     <div class="equipped-slot interactive-node" id="slot_w_set2_main">

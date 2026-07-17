@@ -5,8 +5,9 @@
 import { charData } from '../../saves/tempSave.js';
 import { backgroundsData } from '../data/backgroundsData.js';
 import { syncStatsUI } from './statsScript.js';
-import { updateFeatsSelect, renderAssignedFeats } from './attributesScript.js';
+import { updateFeatsSelect, renderAssignedFeats, grantFeatInstance, revertFeatInstance } from './attributesScript.js';
 import { updateInstrumentsUI } from '../tabs/mainTab.js';
+import { featsData } from '../data/attributesData.js';
 
 import { equipmentsData } from '../data/equipments/equipmentsData.js';
 import { weaponsData } from '../data/equipments/weaponsData.js';
@@ -49,10 +50,10 @@ const TOOL_CHOICES = {
         { key: "inst_shawm", label: "Шалмей" }
     ],
     game: [
-        { key: "game_dice", label: "Кости" },
-        { key: "game_cards", label: "Карты" },
-        { key: "game_dragon_chess", label: "Шахматы дракона" },
-        { key: "game_three_dragon_ante", label: "Ставка трёх драконов" }
+        { key: "game_dice", label: "Кости (Игровой набор)" },
+        { key: "game_cards", label: "Карты (Игровой набор)" },
+        { key: "game_dragon_chess", label: "Шахматы дракона (Игровой набор)" },
+        { key: "game_three_dragon_ante", label: "Ставка трёх драконов (Игровой набор)" }
     ]
 };
 
@@ -113,12 +114,14 @@ export function openBackgroundModal(bgKey) {
         return isProf ? `<span style="color: var(--text-muted); text-decoration: line-through;" title="Владение уже получено другим способом">${skName}</span>` : `<span style="color: var(--accent-success);">${skName}</span>`;
     }).join(', ');
 
+    const translatedFeatName = featsData[bg.feat]?.name.split(' [')[0] || bg.feat;
+
     container.innerHTML = `
         <h3 class="font-group-1" style="color:var(--accent-yellow); margin-bottom:10px;">${bg.name}</h3>
         <p class="font-group-3" style="margin-bottom:15px; text-align:justify;">${bg.description}</p>
 
         <div style="background:#11141a; padding:10px; border-radius:6px; margin-bottom:16px; font-size:13px;">
-            <div><b style="color:var(--accent-success);">Черта:</b> ${bg.feat}</div>
+            <div><b style="color:var(--accent-success);">Черта:</b> ${translatedFeatName}</div>
             <div><b style="color:var(--accent-success);">Навыки:</b> ${skillsDisplay}</div>
             <div><b style="color:var(--accent-success);">Инструмент:</b> ${bg.tools}</div>
         </div>
@@ -167,7 +170,6 @@ export function openBackgroundModal(bgKey) {
 
     document.getElementById("confirmBackgroundBtn").onclick = () => {
         applyBackgroundToCharData(bgKey, container);
-        modal.classList.remove("visible");
     };
 }
 
@@ -190,6 +192,18 @@ export function revertCurrentBackground() {
         });
     }
 
+    // Откат черты через универсальную систему
+    if (old.featInstanceAdded && charData.selectedFeats[old.featKey]) {
+        const fState = charData.selectedFeats[old.featKey];
+        const idx = fState.instances.findIndex(i => i.source === "Предыстория");
+        if (idx > -1) {
+            revertFeatInstance(fState.instances[idx]);
+            fState.instances.splice(idx, 1);
+            if (fState.instances.length === 0) delete charData.selectedFeats[old.featKey];
+        }
+    }
+
+    // Обратная совместимость для старых сейвов, где черты лежали в массиве
     if (old.featAdded && charData.feats) {
         charData.feats = charData.feats.filter(f => f !== old.featAdded);
     }
@@ -215,6 +229,17 @@ export function applyBackgroundToCharData(bgKey, container) {
     const bg = backgroundsData[bgKey];
     if (!bg) return;
 
+    const statMode = container.querySelector('input[name="statBoostMode"]:checked').value;
+    let s2, s1;
+    if (statMode !== "1_1_1") {
+        s2 = container.querySelector('#statPlus2')?.value || bg.stats[0];
+        s1 = container.querySelector('#statPlus1')?.value || bg.stats[1];
+        if (s1 === s2) {
+            alert("Пожалуйста, выберите разные характеристики для +2 и +1.");
+            return;
+        }
+    }
+
     revertCurrentBackground();
 
     if (!charData.origin) charData.origin = {};
@@ -229,23 +254,19 @@ export function applyBackgroundToCharData(bgKey, container) {
         statsApplied: {},
         skillsAdded: [],
         toolsAdded: [],
-        featAdded: null,
+        featKey: null,
+        featInstanceAdded: false,
         goldAdded: 0,
         itemsAdded: []
     };
 
-    const statMode = container.querySelector('input[name="statBoostMode"]:checked').value;
     if (statMode === "1_1_1") {
         bg.stats.forEach(s => {
             state.statsApplied[s] = (state.statsApplied[s] || 0) + 1;
         });
     } else {
-        const s2 = container.querySelector('#statPlus2')?.value || bg.stats[0];
-        const s1 = container.querySelector('#statPlus1')?.value || bg.stats[1];
-        state.statsApplied[s2] = (state.statsApplied[s2] || 0) + 2;
-        if (s1 !== s2) {
-            state.statsApplied[s1] = (state.statsApplied[s1] || 0) + 1;
-        }
+        state.statsApplied[s2] = 2;
+        state.statsApplied[s1] = 1;
     }
 
     if (!charData.skills) charData.skills = {};
@@ -257,7 +278,7 @@ export function applyBackgroundToCharData(bgKey, container) {
         }
     });
 
-    if (!charData.proficiencies) charData.proficiencies = { tools: [], weapons: [], armor: [], languages: [] };
+    if (!charData.proficiencies) charData.proficiencies = { tools: [], weapon: { simple: 0, martial: 0, other: false }, armor: { light: false, medium: false, heavy: false, shield: false }, languages: [] };
     if (!charData.proficiencies.tools) charData.proficiencies.tools = [];
     const chosenToolKey = container.querySelector('#customToolChoice')?.value;
 
@@ -266,10 +287,11 @@ export function applyBackgroundToCharData(bgKey, container) {
         state.toolsAdded.push(chosenToolKey);
     }
 
-    if (!charData.feats) charData.feats = [];
-    if (!charData.feats.includes(bg.feat)) {
-        charData.feats.push(bg.feat);
-        state.featAdded = bg.feat;
+    // Выдача черты по новым правилам
+    if (bg.feat && featsData[bg.feat]) {
+        grantFeatInstance(bg.feat, featsData[bg.feat], { source: "Предыстория" });
+        state.featKey = bg.feat;
+        state.featInstanceAdded = true;
     }
 
     const equipOption = container.querySelector('input[name="equipOption"]:checked').value;
@@ -309,4 +331,6 @@ export function applyBackgroundToCharData(bgKey, container) {
 
     const bgSelect = document.getElementById("backgroundSelect");
     if (bgSelect) bgSelect.value = bgKey;
+
+    document.getElementById("backgroundModal").classList.remove("visible");
 }

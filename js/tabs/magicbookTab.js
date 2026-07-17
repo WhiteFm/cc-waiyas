@@ -13,7 +13,6 @@ import { initInspector } from './infoTab.js';
 export function initMagicbookTab() {
     ensureMagicBookStructure();
 
-    // Самоисцеление бонусных ячеек (если был Долгий отдых, стираем бонусные)
     if (charData.magic && Object.keys(charData.magic.slotsUsed || {}).length === 0) {
         charData.magic.bonusSlots = {};
     }
@@ -54,7 +53,6 @@ function renderCasterStats() {
     }
 }
 
-// ==== СИСТЕМА ОЧКОВ ЧАРОДЕЙСТВА ====
 function renderSorceryPoints() {
     const box = document.getElementById("sorceryPointsBox");
     if (!box) return;
@@ -135,7 +133,7 @@ window.updateSorceryModalUI = function() {
 
     document.getElementById("sorceryPointsCurrent").innerText = charData.magic.sorceryPoints;
     document.getElementById("sorceryPointsMax").innerText = maxSp;
-    renderSorceryPoints(); // Обновляем плашку на фоне
+    renderSorceryPoints();
 };
 
 window.convertSpToSlot = function() {
@@ -148,10 +146,8 @@ window.convertSpToSlot = function() {
         return;
     }
 
-    // Тратим очки
     charData.magic.sorceryPoints -= cost;
 
-    // Добавляем бонусную ячейку
     if (!charData.magic.bonusSlots) charData.magic.bonusSlots = {};
     charData.magic.bonusSlots[level] = (charData.magic.bonusSlots[level] || 0) + 1;
 
@@ -169,7 +165,6 @@ window.convertSlotToSp = function() {
         return;
     }
 
-    // Ищем свободную ячейку нужного уровня
     const baseSlots = getAvailableSpellSlots();
     const baseCount = baseSlots[level - 1] || 0;
     const bonusCount = charData.magic.bonusSlots?.[level] || 0;
@@ -189,7 +184,6 @@ window.convertSlotToSp = function() {
         return;
     }
 
-    // Сжигаем ячейку и получаем очки
     charData.magic.slotsUsed[foundUnused] = true;
     charData.magic.sorceryPoints = Math.min(maxSp, charData.magic.sorceryPoints + level);
 
@@ -198,13 +192,12 @@ window.convertSlotToSp = function() {
     document.dispatchEvent(new Event('charDataUpdated'));
 };
 
-// ==== РЕНДЕР ЯЧЕЕК ЗАКЛИНАНИЙ ====
 function renderSpellSlots() {
     const container = document.getElementById("spellSlotsContainer");
     if (!container) return;
 
     if (!charData.magic.bonusSlots) charData.magic.bonusSlots = {};
-    if (Object.keys(charData.magic.slotsUsed || {}).length === 0) charData.magic.bonusSlots = {}; // Автосброс бонусных при отдыхе
+    if (Object.keys(charData.magic.slotsUsed || {}).length === 0) charData.magic.bonusSlots = {};
 
     const baseSlots = getAvailableSpellSlots();
     let html = "";
@@ -234,7 +227,7 @@ function renderSpellSlots() {
             for (let i = 0; i < totalCount; i++) {
                 const slotId = `slot_lvl${lvl}_idx${i}`;
                 const isUsed = !!charData.magic.slotsUsed[slotId];
-                const isBonus = i >= baseCount; // Визуально выделяем бонусные ячейки
+                const isBonus = i >= baseCount;
 
                 const bg = !isUsed ? (isBonus ? "var(--accent-yellow)" : "var(--accent-success)") : "#11141a";
                 const border = !isUsed ? "none" : "1px solid var(--text-muted)";
@@ -352,8 +345,15 @@ function openSpellPickerModal() {
     if (!modal || !container) return;
 
     const classKey = charData.origin?.classKey || "wizard";
-    const charLvl = charData.origin?.level || 1;
-    const maxSpellLvl = Math.ceil(charLvl / 2);
+    const availableSlots = getAvailableSpellSlots();
+
+    let maxSpellLvl = 1;
+    for (let i = 0; i < availableSlots.length; i++) {
+        if (availableSlots[i] > 0) maxSpellLvl = i + 1;
+    }
+    if (classKey === "warlock") {
+        maxSpellLvl = Math.min(5, Math.ceil((charData.origin.level || 1) / 2));
+    }
 
     const available = Object.keys(spellsData).filter(key => {
         const sp = spellsData[key];

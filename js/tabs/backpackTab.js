@@ -36,11 +36,10 @@ ALL_ITEMS_MAP['spell_scroll_base'] = {
     description: "Позволяет выбрать заклинание и создать магический свиток."
 };
 
-// БЕЗОПАСНЫЙ ПАРСЕР ЦЕН
 window.parseCurrencyToCp = function(str) {
     if (!str) return 0;
     let cp = 0;
-    const cleanStr = str.replace(/(\d)\s+(?=\d)/g, "$1"); // 4 000 ЗМ -> 4000 ЗМ
+    const cleanStr = str.replace(/(\d)\s+(?=\d)/g, "$1");
     const matches = cleanStr.match(/([\d.,]+)\s*(ЗМ|СМ|ММ|ЭМ|ПМ)/gi);
     if (matches) {
         matches.forEach(m => {
@@ -145,7 +144,7 @@ class InventoryManager {
         if (!charData.inventory) charData.inventory = {};
         if (!charData.inventory.currency) charData.inventory.currency = { cp: 0, sp: 0, ep: 0, gp: 0, pp: 0 };
         if (!charData.inventory.storage) charData.inventory.storage = [];
-        if (!charData.inventory.equipped) charData.inventory.equipped = { head: null, armor: null, cloak: null, amulet: null, bracers: null, belt: null, boots: null, rings: [], weapons: [] };
+        if (!charData.inventory.equipped) charData.inventory.equipped = { head: null, armor: null, cloak: null, amulet: null, bracers: null, belt: null, boots: null, rings: [], weapons: [], activeSet: 1 };
         if (!charData.inventory.equipped.weapons) charData.inventory.equipped.weapons = [];
         if (!charData.inventory.equipped.rings) charData.inventory.equipped.rings = [];
         if (!charData.inventory.lists) charData.inventory.lists = { ammunitionList: [], potionBag: [], equipmentList: [] };
@@ -219,6 +218,7 @@ window.invManager = new InventoryManager();
 
 export function initBackpackTab() {
     window.invManager.initStructure();
+    if (!charData.inventory.equipped.activeSet) charData.inventory.equipped.activeSet = 1;
     ensureDynamicItemsExist();
     normalizeInventoryKeys();
     renderInventoryUI();
@@ -259,7 +259,6 @@ function renderWalletUI() {
             walletWrapper.style.display = "flex";
             walletWrapper.style.gap = "15px";
             walletWrapper.style.marginTop = "20px";
-            // Включаем адаптивный перенос на новые строки для узких экранов
             walletWrapper.style.flexWrap = "wrap";
             eqContainer.parentElement.appendChild(walletWrapper);
         } else return;
@@ -368,7 +367,7 @@ function renderInventoryList(list, container, listType, isList) {
 
 function renderEquippedSlots() {
     const eq = charData.inventory.equipped;
-    ['head', 'armor', 'cloak', 'amulet', 'belt', 'boots'].forEach(slot => {
+    ['head', 'armor', 'cloak', 'amulet', 'bracers', 'belt', 'boots'].forEach(slot => {
         const disp = document.getElementById(`disp_${slot}`); const slotEl = document.getElementById(`slot_${slot}`);
         if (!disp) return;
         if (eq[slot]) {
@@ -390,6 +389,10 @@ function renderEquippedSlots() {
             disp.innerHTML = `<span style="color:var(--text-muted);">Пусто</span>`; if (slotEl) { slotEl.setAttribute("data-inspector", `Свободный слот для кольца`); slotEl.onclick = null; }
         }
     }
+
+    const actSet = eq.activeSet || 1;
+    document.getElementById("weapon_set_1_wrap").style.borderColor = actSet === 1 ? "var(--accent-success)" : "transparent";
+    document.getElementById("weapon_set_2_wrap").style.borderColor = actSet === 2 ? "var(--accent-success)" : "transparent";
 
     const weaponSlots = ['set1_main', 'set1_off', 'set2_main', 'set2_off'];
     weaponSlots.forEach(slot => {
@@ -566,6 +569,12 @@ function attachBackpackEventListeners() {
     document.getElementById("itemPickerCancelBtn")?.addEventListener("click", () => document.getElementById("itemPickerModal").classList.remove("visible"));
     document.getElementById("itemPickerConfirmBtn")?.addEventListener("click", applyCartItems);
     document.getElementById("itemSearchInput")?.addEventListener("input", renderModalSearchList);
+    document.getElementById("swapWeaponsBtn")?.addEventListener("click", () => {
+        charData.inventory.equipped.activeSet = charData.inventory.equipped.activeSet === 1 ? 2 : 1;
+        renderEquippedSlots();
+        syncAllSkillsUI();
+        document.dispatchEvent(new Event('charDataUpdated'));
+    });
 }
 
 function openItemPickerModal() {

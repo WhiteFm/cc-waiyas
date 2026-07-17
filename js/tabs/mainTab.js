@@ -24,13 +24,13 @@ export function initMainTab() {
         nameInput.value = charData.origin.name || "";
         nameInput.addEventListener("input", (e) => {
             charData.origin.name = e.target.value;
-            document.dispatchEvent(new Event('charDataUpdated')); // Добавлена эта строка
+            document.dispatchEvent(new Event('charDataUpdated'));
         });
         nameInput.addEventListener("keydown", (e) => {
             if (e.key === "Enter") {
                 charData.origin.name = e.target.value;
                 nameInput.blur();
-                document.dispatchEvent(new Event('charDataUpdated')); // И эта
+                document.dispatchEvent(new Event('charDataUpdated'));
             }
         });
     }
@@ -51,10 +51,15 @@ export function initMainTab() {
     updateInstrumentsUI();
 
     updateSubclassDropdown(charData.origin.classKey);
-    document.addEventListener('charDataUpdated', () => {
-        updateSubclassDropdown(charData.origin.classKey);
-        updateInstrumentsUI(); // Для обновления инструментов после левелапа
-    });
+
+    // БАГ 8 ФИКС: Защита от дублирования
+    if (!window.mainTabListenerBound) {
+        document.addEventListener('charDataUpdated', () => {
+            updateSubclassDropdown(charData.origin.classKey);
+            updateInstrumentsUI();
+        });
+        window.mainTabListenerBound = true;
+    }
 }
 
 function populateClassDropdown() {
@@ -157,11 +162,17 @@ function openClassModal(key, cls) {
         }
 
         updateSubclassDropdown(key);
+
+        // БАГ 5 ФИКС: Сбрасываем старые владения от прошлого класса
+        charData.proficiencies.armor = { light: false, medium: false, heavy: false, shield: false };
+        charData.proficiencies.weapon = { simple: 0, martial: 0, other: false };
+
         applyClassProficiencies();
         applyFeatBonuses();
 
-        // ВАЖНО: Вызов окна 1-го уровня для распределения стартовых навыков и инвентаря
-        charData.origin.level = 0; // Временно сбрасываем, чтобы сымитировать рост
+        // БАГ 4 ФИКС: Очищаем старые броски хитов перед сбросом на 1 уровень
+        charData.health.rolls = [];
+        charData.origin.level = 0;
         levelQueue.push(1);
         processLevelQueue();
 

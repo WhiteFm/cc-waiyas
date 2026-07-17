@@ -4,8 +4,10 @@
 
 import { statsData } from '../data/statsData.js';
 
+let lastTouchedNode = null;
+let touchTimeout = null;
+
 export function initInspector() {
-    // Ищем глобальную панель в index.html
     const textPanel = document.getElementById("inspectorDescriptionPanel");
     if (!textPanel) return;
 
@@ -27,7 +29,32 @@ export function initInspector() {
             };
         }
     });
+
+    if (!window.touchInspectorBound) {
+        document.addEventListener('click', (e) => {
+            if (e.pointerType === 'touch' || (e.sourceCapabilities && e.sourceCapabilities.firesTouchEvents)) {
+                const node = e.target.closest('[data-inspector]');
+                if (!node) return;
+
+                if (lastTouchedNode !== node) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    lastTouchedNode = node;
+
+                    const keyOrText = node.getAttribute("data-inspector");
+                    const descText = statsData[keyOrText] || keyOrText;
+                    textPanel.innerHTML = `<p class="font-group-3" style="text-align: justify; line-height: 1.45;">${descText}</p>`;
+
+                    clearTimeout(touchTimeout);
+                    touchTimeout = setTimeout(() => { lastTouchedNode = null; }, 2500);
+                } else {
+                    lastTouchedNode = null;
+                    clearTimeout(touchTimeout);
+                }
+            }
+        }, { capture: true });
+        window.touchInspectorBound = true;
+    }
 }
 
-// Экспортируем в окно, чтобы роутер (app.js) мог дергать инспектор при переключении вкладок
 window.initGlobalInspector = initInspector;

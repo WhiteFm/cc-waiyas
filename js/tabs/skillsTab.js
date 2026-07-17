@@ -19,7 +19,6 @@ export function initSkillsTab() {
     syncAllSkillsUI();
     renderSkillsTabFeatures();
 
-    // Вызываем глобальный рендер заметок, если он есть
     if(typeof window.renderGlobalNotes === "function") window.renderGlobalNotes();
     if(typeof window.initGlobalInspector === "function") window.initGlobalInspector();
 }
@@ -40,7 +39,6 @@ function autoSyncRaceResistances() {
     }
 }
 
-// ==== РЕНДЕР 2-Й ВКЛАДКИ (Только Активные и Пассивные умения) ====
 export function renderSkillsTabFeatures() {
     const activeContainer = document.getElementById("skActiveFeaturesList");
     const passiveContainer = document.getElementById("skPassiveFeaturesList");
@@ -50,13 +48,14 @@ export function renderSkillsTabFeatures() {
     let passiveHtml = "";
 
     const processFeatureWithCharges = (name, source, desc, type, entityKey) => {
-        if (type === "oneTime") return; // Пропускаем Единоразовые умения для вкладки навыков
+        if (type === "oneTime") return;
 
         const safeDesc = window.escapeHTML ? window.escapeHTML(desc) : desc.replace(/"/g, '&quot;');
         const maxCharges = calculateFeatureCharges(name);
 
-        // Категоризация: если есть заряды, значит Активное, иначе Пассивное
-        let category = maxCharges > 0 ? "active" : "passive";
+        // ФИКС КАТЕГОРИЗАЦИИ: Строго учитываем type из базы данных.
+        let category = type === "active" ? "active" : "passive";
+        if (maxCharges > 0) category = "active";
 
         const chargeId = `charge_${entityKey}_${name.replace(/\s+/g, '_')}`;
         const currentCharge = charData.combat.charges[chargeId] !== undefined ? charData.combat.charges[chargeId] : maxCharges;
@@ -84,7 +83,6 @@ export function renderSkillsTabFeatures() {
         else passiveHtml += card;
     };
 
-    // 1. ЧЕРТЫ
     Object.keys(charData.selectedFeats || {}).forEach(key => {
         const feat = featsData[key];
         if (!feat) return;
@@ -93,7 +91,6 @@ export function renderSkillsTabFeatures() {
         });
     });
 
-    // 2. РАСОВЫЕ ОСОБЕННОСТИ
     const raceKey = charData.origin?.raceKey;
     const raceObj = racesData[raceKey];
     const lvl = charData.origin?.level || 1;
@@ -104,7 +101,6 @@ export function renderSkillsTabFeatures() {
         });
     }
 
-    // 3. КЛАССОВЫЕ ОСОБЕННОСТИ
     const classFeatures = getDynamicClassFeatures(charData.origin.classKey, charData.origin.subclassKey, lvl);
     classFeatures.forEach(cf => {
         processFeatureWithCharges(cf.name, cf.sourceName, cf.description, cf.type, `class_${cf.sourceName}`);

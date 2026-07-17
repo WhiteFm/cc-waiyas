@@ -20,7 +20,6 @@ export function updateSavedCountUI() {
     }
 }
 
-// Вспомогательная функция для визуального подтверждения
 function showButtonFeedback(elementId, successText) {
     const btn = document.getElementById(elementId);
     if (!btn) return;
@@ -35,18 +34,18 @@ function showButtonFeedback(elementId, successText) {
     }, 1500);
 }
 
-// ==========================================
-// ТЕНЕВОЕ АВТОСОХРАНЕНИЕ
-// ==========================================
+// БАГ 3 ФИКС: Безопасное кодирование и декодирование base64 с поддержкой кириллицы
+function encodeBase64(str) {
+    return btoa(unescape(encodeURIComponent(str)));
+}
+
 export function autoSaveCharacter() {
     if (!charData.origin) return;
     const name = charData.origin.name?.trim();
 
-    // Не автосохраняем пустых болванчиков
     if (!name || name === "Без имени") return;
 
     const registry = getSavedCharactersRegistry();
-    // Если персонажа еще нет в базе (он не был сохранен вручную с паролем), не автосохраняем
     if (!registry[name]) return;
 
     const date = new Date().toLocaleString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
@@ -71,14 +70,10 @@ export function autoSaveCharacter() {
     }
 }
 
-// Привязываем автосохранение к любому изменению на листе!
 document.addEventListener('charDataUpdated', () => {
     autoSaveCharacter();
 });
 
-// ==========================================
-// РУЧНОЕ СОХРАНЕНИЕ (Установка пароля)
-// ==========================================
 export function quickSaveCharacter() {
     if (!charData.origin) charData.origin = {};
     const name = charData.origin.name?.trim();
@@ -88,11 +83,10 @@ export function quickSaveCharacter() {
         return;
     }
 
-    // Если персонаж сохраняется ВПЕРВЫЕ, спрашиваем пароль
     if (charData.origin.password === undefined) {
         const password = prompt(`Сохранение персонажа: ${name}\n\nВведите пароль для защиты.\n(Оставьте поле пустым, если пароль не нужен):`, "");
         if (password === null) return;
-        charData.origin.password = password.trim() !== "" ? btoa(password) : "";
+        charData.origin.password = password.trim() !== "" ? encodeBase64(password) : "";
     }
 
     const registry = getSavedCharactersRegistry();
@@ -121,9 +115,6 @@ export function quickSaveCharacter() {
     }
 }
 
-// ==========================================
-// ЗАГРУЗКА ИЗ БРАУЗЕРА
-// ==========================================
 export function quickLoadCharacter(name) {
     const savedStr = localStorage.getItem(`dnd_char_${name}`);
     if (!savedStr) { alert("Сохранение не найдено!"); return; }
@@ -136,7 +127,7 @@ export function quickLoadCharacter(name) {
     if (loadedOrigin.password) {
         const pass = prompt(`Персонаж "${name}" защищен паролем.\n\nВведите пароль:`, "");
         if (pass === null) return;
-        if (btoa(pass) !== loadedOrigin.password) { alert("Неверный пароль!"); return; }
+        if (encodeBase64(pass) !== loadedOrigin.password) { alert("Неверный пароль!"); return; }
     }
 
     Object.keys(charData).forEach(key => delete charData[key]);
@@ -154,7 +145,7 @@ export function deleteCharacterFromRegistry(name) {
         if (loadedOrigin.password) {
             const pass = prompt(`Для удаления "${name}" введите пароль:`, "");
             if (pass === null) return;
-            if (btoa(pass) !== loadedOrigin.password) { alert("Неверный пароль!"); return; }
+            if (encodeBase64(pass) !== loadedOrigin.password) { alert("Неверный пароль!"); return; }
         }
     }
     const registry = getSavedCharactersRegistry();
@@ -164,14 +155,17 @@ export function deleteCharacterFromRegistry(name) {
     updateSavedCountUI();
 }
 
-// ==========================================
-// ЭКСПОРТ / ИМПОРТ ФАЙЛОВ
-// ==========================================
 export function exportCharacterToFile() {
     const name = charData.origin?.name?.trim() || "Unknown";
     autoSaveCharacter();
 
-    const dataStr = JSON.stringify(charData, null, 4);
+    // БАГ 15 (ЗАМЕТКА) ФИКС: Удаляем пароль из экспортируемого файла
+    const exportData = JSON.parse(JSON.stringify(charData));
+    if (exportData.origin && exportData.origin.password !== undefined) {
+        exportData.origin.password = "";
+    }
+
+    const dataStr = JSON.stringify(exportData, null, 4);
     const fileContent = `// Сохранение персонажа: ${name}\nexport const charData = ${dataStr};\n`;
 
     const blob = new Blob([fileContent], { type: "text/javascript" });
@@ -192,7 +186,6 @@ export function importCharacterFromFile(file) {
         try {
             let content = e.target.result;
 
-            // ИЩЕМ НАЧАЛО И КОНЕЦ JSON ОБЪЕКТА (чтобы отрезать все текстовые комментарии вроде "// Сохранение...")
             const firstBrace = content.indexOf('{');
             const lastBrace = content.lastIndexOf('}');
             if (firstBrace === -1 || lastBrace === -1) throw new Error("JSON структура не найдена в файле.");
@@ -205,7 +198,7 @@ export function importCharacterFromFile(file) {
             if (loadedOrigin.password) {
                 const pass = prompt(`Файл "${file.name}" защищен паролем.\n\nВведите пароль:`, "");
                 if (pass === null) { document.getElementById("fileImportInput").value = ""; return; }
-                if (btoa(pass) !== loadedOrigin.password) {
+                if (encodeBase64(pass) !== loadedOrigin.password) {
                     alert("Неверный пароль! Загрузка отменена.");
                     document.getElementById("fileImportInput").value = "";
                     return;
@@ -215,7 +208,6 @@ export function importCharacterFromFile(file) {
             Object.keys(charData).forEach(key => delete charData[key]);
             Object.assign(charData, parsedData);
 
-            // Тихая регистрация загруженного персонажа в LocalStorage браузера
             const name = loadedOrigin.name?.trim() || "Unknown";
             const registry = getSavedCharactersRegistry();
             const date = new Date().toLocaleString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });

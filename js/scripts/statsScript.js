@@ -75,8 +75,8 @@ export function ensureCharDataStructure() {
         charData.bonuses = { stats: { str: 0, dex: 0, con: 0, int: 0, wis: 0, cha: 0 }, speed: 0, ac: 0, hpMax: 0, initiative: 0 };
     }
     if (!charData.health.rolls) charData.health.rolls = [];
-    if (!charData.inventory) charData.inventory = { equipped: { armor: null, weapons: [], rings: [] }, storage: [], currency: { cp: 0, sp: 0, ep: 0, gp: 0, pp: 0 } };
-    if (!charData.inventory.equipped) charData.inventory.equipped = { armor: null, weapons: [], rings: [] };
+    if (!charData.inventory) charData.inventory = { equipped: { armor: null, weapons: [], rings: [], activeSet: 1 }, storage: [], currency: { cp: 0, sp: 0, ep: 0, gp: 0, pp: 0 } };
+    if (!charData.inventory.equipped) charData.inventory.equipped = { armor: null, weapons: [], rings: [], activeSet: 1 };
     if (!charData.proficiencies) charData.proficiencies = { armor: { light: false, medium: false, heavy: false, shield: false }, weapon: { simple: 0, martial: 0, other: false }, tools: [], languages: [] };
     if (!charData.magic) charData.magic = { slotsUsed: {}, sorceryPoints: 0 };
     if (charData.magic.sorceryPoints === undefined) charData.magic.sorceryPoints = 0;
@@ -85,12 +85,42 @@ export function ensureCharDataStructure() {
 export function calculateFeatureCharges(featName) {
     const pb = charData.origin?.pb || 2;
     const chaMod = charData.stats?.cha?.mod || 0;
+    const wisMod = charData.stats?.wis?.mod || 0;
+    const classKey = charData.origin?.classKey;
+    const level = charData.origin?.level || 1;
 
-    const pbCharges = ["Очки удачи", "Наследие великанов", "Оружие дыхания", "Выброс адреналина", "Ободряющая песня", "Знание камня", "Божественный канал", "Второе дыхание", "Ярость", "Поддерживающие угощения"];
-    if (pbCharges.some(n => featName.includes(n))) return pb;
+    // Ресурсы классов
+    if (classKey === "barbarian" && featName.includes("Ярость")) return level < 3 ? 2 : level < 6 ? 3 : level < 12 ? 4 : level < 17 ? 5 : level < 20 ? 6 : 99;
+    if (classKey === "monk" && (featName.includes("Очки фокуса") || featName.includes("Очки сосредоточенности"))) return Math.max(1, level);
+    if (classKey === "druid" && featName.includes("Дикий облик")) return level < 20 ? 2 : 99;
+    if (classKey === "cleric" && featName.includes("Проведение божественности")) return level < 6 ? 2 : level < 18 ? 3 : 4;
+    if (classKey === "paladin" && featName.includes("Проведение божественности")) return level < 11 ? 2 : 3;
 
+    // Воин (Fighter)
+    if (classKey === "fighter" && featName.includes("Второе дыхание")) return level < 4 ? 2 : level < 10 ? 3 : 4;
+    if (classKey === "fighter" && featName.includes("Всплеск действий")) return level < 17 ? 1 : 2;
+    if (classKey === "fighter" && featName.includes("Упорный")) return level < 9 ? 0 : level < 13 ? 1 : level < 17 ? 2 : 3;
+    if (featName.includes("Боевое превосходство")) return level < 3 ? 0 : level < 7 ? 4 : level < 15 ? 5 : 6;
+
+    // Паладин (Paladin)
+    if (featName.includes("Возложение рук")) return level * 5;
+
+    // Следопыт (Ranger)
+    if (featName.includes("Неутомимый")) return pb;
+    if (featName.includes("Природная завеса")) return Math.max(1, wisMod);
+
+    // Колдун и Чародей (Warlock / Sorcerer)
+    if (featName.includes("Врождённое чародейство")) return 2;
+    if (featName.includes("Таинственный арканум")) return 1;
+
+    // Ресурсы черт и других свойств
+    if (featName.includes("Псионическая сила")) return pb * 2;
     if (featName.includes("Бардовское вдохновение")) return Math.max(1, chaMod);
+    if (featName.includes("Лечащий свет")) return level + 1;
     if (featName.includes("Восстановление жизненной силы")) return 10;
+
+    const pbCharges = ["Очки удачи", "Наследие великанов", "Оружие дыхания", "Выброс адреналина", "Ободряющая песня", "Знание камня", "Поддерживающие угощения", "Боевой священник", "Защищающая вспышка", "Корона света", "Шаги феи", "Удача Темнейшего"];
+    if (pbCharges.some(n => featName.includes(n))) return pb;
 
     const oneCharges = [
         "Исцеляющие руки", "Небесное откровение", "Большая форма", "Драконий полёт", "Непоколебимая стойкость",
@@ -99,7 +129,11 @@ export function calculateFeatureCharges(featName) {
         "Инфернальное наследие (Ур. 3)", "Инфернальное наследие (Ур. 5)", "Наследие Бездны (Ур. 3)",
         "Наследие Бездны (Ур. 5)", "Хтоническое наследие (Ур. 3)", "Хтоническое наследие (Ур. 5)",
         "Магия Дроу (Ур. 3)", "Магия Дроу (Ур. 5)", "Магия Высших эльфов (Ур. 3)", "Магия Высших эльфов (Ур. 5)",
-        "Магия Лесных эльфов (Ур. 3)", "Магия Лесных эльфов (Ур. 5)", "Чародейское восстановление"
+        "Магия Лесных эльфов (Ур. 3)", "Магия Лесных эльфов (Ур. 5)", "Чародейское восстановление",
+        "Магическая изворотливость", "Магическое восстановление", "Божественное вмешательство",
+        "Бессмертный страж", "Ангел возмездия", "Древний чемпион", "Священный ореол", "Живая легенда",
+        "Искажающее схлопывание", "Крылья дракона", "Дракон-спутник", "Медитация порядка", "Заводная кавалькада",
+        "Укрощённая волна", "Бросок сквозь ад", "Жгучее возмездие"
     ];
     if (oneCharges.some(n => featName.includes(n))) return 1;
 
@@ -163,8 +197,11 @@ window.shortRest = function() {
     charData.deathSaves.successes = 0;
     charData.deathSaves.failures = 0;
 
+    // Способности, которые восстанавливаются на Коротком отдыхе
     const shortRestFeatures = [
         "Второе дыхание",
+        "Всплеск действий",
+        "Боевое превосходство",
         "Порыв к действию",
         "Божественный канал",
         "Дикий облик",
@@ -175,7 +212,10 @@ window.shortRest = function() {
         "Ободряющая песня",
         "Восстановление жизненной силы",
         "Очки фокуса",
-        "Ци"
+        "Очки сосредоточенности",
+        "Ци",
+        "Проведение божественности",
+        "Псионическая сила"
     ];
 
     if (charData.origin.classKey === "bard" && charData.origin.level >= 5) {
@@ -214,6 +254,7 @@ export function recalculateStats() {
     const level = charData.origin.level || 1;
     charData.origin.pb = Math.ceil(level / 4) + 1;
     charData.hitDice.max = level;
+    if (charData.hitDice.current > charData.hitDice.max) charData.hitDice.current = charData.hitDice.max;
 
     let totalPointBuyCost = 0;
     ['str', 'dex', 'con', 'int', 'wis', 'cha'].forEach(key => {
@@ -263,7 +304,6 @@ export function recalculateStats() {
 
     const raceObj = racesData[charData.origin.raceKey];
     let baseSpeed = raceObj?.speed || 30;
-    if (charData.origin.raceKey === "elf_wood") baseSpeed = 35;
     charData.combat.speed = baseSpeed + (charData.bonuses?.speed || 0);
 
     let baseAc = 10 + charData.stats.dex.mod;
@@ -271,7 +311,8 @@ export function recalculateStats() {
     let failsStrRequirement = false;
 
     const eqArmor = charData.inventory.equipped.armor;
-    const eqWeapons = charData.inventory.equipped.weapons || [];
+    const actSet = charData.inventory.equipped.activeSet || 1;
+    const eqWeapons = (charData.inventory.equipped.weapons || []).filter(w => w.equipSlot && w.equipSlot.includes(`set${actSet}`));
 
     const eqShield = eqWeapons.find(w => {
         if (w.key && w.key.includes("shield")) return true;
@@ -279,13 +320,11 @@ export function recalculateStats() {
         return itemDef && (itemDef.category === "Щит" || itemDef.type === "Щит");
     });
 
-    // ==== УЛУЧШЕННЫЙ РАСЧЁТ КЗ И ТРЕБОВАНИЙ ====
     if (eqArmor) {
         const armor = armorsData[eqArmor.key] || customItemsData[eqArmor.key];
         if (armor) {
             hasStealthDisadv = armor.stealth === "Помеха";
 
-            // Универсальный парсер требований силы (вытащит цифру из "Сил 13", "Требуется Сила 15", "15" и т.д.)
             const reqStr = parseInt((armor.strReq || "").replace(/\D/g, '')) || 0;
             if (reqStr > 0 && charData.stats.str.val < reqStr) failsStrRequirement = true;
 
@@ -299,19 +338,14 @@ export function recalculateStats() {
                 baseAc = 10;
             } else {
                 const baseArmorValue = parseInt(armor.ac) || 10;
-
-                // Проверяем динамический лимит Ловкости из строки КЗ (например, "14 + мод Лов (макс. 5)")
                 const maxDexMatch = (armor.ac || "").match(/(?:макс\.|max\.?)\s*(\d+)/i);
 
                 if (maxDexMatch) {
-                    // Есть явный лимит (кастомная броня или средний доспех)
                     const maxDexAllowed = parseInt(maxDexMatch[1]);
                     baseAc = baseArmorValue + Math.min(maxDexAllowed, charData.stats.dex.mod);
                 } else if (category.includes("Тяжёлый") || category.includes("Тяжелый") || (armor.ac && !armor.ac.includes("Лов"))) {
-                    // Тяжелая броня вообще не добавляет Ловкость
                     baseAc = baseArmorValue;
                 } else {
-                    // Легкая броня или кастомная без лимитов — добавляет Ловкость целиком
                     baseAc = baseArmorValue + charData.stats.dex.mod;
                 }
             }
@@ -376,9 +410,7 @@ export function syncStatsUI() {
         pbTotalEl.style.color = totalPbCost > 27 ? "var(--accent)" : "#cbd5e1";
     }
 
-    if (document.getElementById("hpCurrent")) document.getElementById("hpCurrent").value = charData.health.current;
     if (document.getElementById("hpMax")) document.getElementById("hpMax").value = charData.health.max;
-    if (document.getElementById("hpTemp")) document.getElementById("hpTemp").value = charData.health.temp;
 
     const hdDisplay = document.getElementById("hitDiceDisplay");
     if (hdDisplay) hdDisplay.innerText = `${charData.hitDice.max}${charData.hitDice.type}`;
@@ -487,9 +519,6 @@ export function bindStatsEventListeners() {
             });
         }
     });
-
-    document.getElementById("hpCurrent")?.addEventListener("input", e => charData.health.current = parseInt(e.target.value) || 0);
-    document.getElementById("hitDiceCurrent")?.addEventListener("input", e => charData.hitDice.current = parseInt(e.target.value) || 0);
 
     document.getElementById("prof_armor_light")?.addEventListener("change", e => { charData.proficiencies.armor.light = e.target.checked; applyFeatBonuses(); });
     document.getElementById("prof_armor_medium")?.addEventListener("change", e => { charData.proficiencies.armor.medium = e.target.checked; applyFeatBonuses(); });

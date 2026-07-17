@@ -5,7 +5,6 @@
 import { charData } from '../../saves/tempSave.js';
 import { spellsData } from '../data/magicbookData.js';
 
-// Карта основных характеристик заклинателей D&D 2024
 const CLASS_SPELL_STATS = {
     bard: "cha", cleric: "wis", druid: "wis", paladin: "cha",
     ranger: "wis", sorcerer: "cha", warlock: "cha", wizard: "int"
@@ -13,7 +12,6 @@ const CLASS_SPELL_STATS = {
 
 const STAT_NAMES = { str: "Сила", dex: "Ловкость", con: "Телосложение", int: "Интеллект", wis: "Мудрость", cha: "Харизма" };
 
-// Прогрессия ячеек заклинаний для полных заклинателей (1-20 ур.)
 const FULL_CASTER_SLOTS = {
     1: [2], 2: [3], 3: [4,2], 4: [4,3], 5: [4,3,2],
     6: [4,3,3], 7: [4,3,3,1], 8: [4,3,3,2], 9: [4,3,3,3,1], 10: [4,3,3,3,2],
@@ -22,12 +20,16 @@ const FULL_CASTER_SLOTS = {
     18: [4,3,3,3,3,1,1,1,1], 19: [4,3,3,3,3,2,1,1,1], 20: [4,3,3,3,3,2,2,1,1]
 };
 
-// Полукастеры (Паладин, Следопыт)
 const HALF_CASTER_SLOTS = {
     1: [2], 2: [2], 3: [3], 4: [3], 5: [4,2], 6: [4,2], 7: [4,3], 8: [4,3],
     9: [4,3,2], 10: [4,3,2], 11: [4,3,3], 12: [4,3,3], 13: [4,3,3,1], 14: [4,3,3,1],
     15: [4,3,3,2], 16: [4,3,3,2], 17: [4,3,3,3,1], 18: [4,3,3,3,1], 19: [4,3,3,3,2], 20: [4,3,3,3,2]
 };
+
+const FULL_CASTER_PREP = { 1:4, 2:5, 3:6, 4:7, 5:9, 6:10, 7:11, 8:12, 9:14, 10:15, 11:16, 12:16, 13:17, 14:17, 15:18, 16:18, 17:19, 18:20, 19:21, 20:22 };
+const HALF_CASTER_PREP = { 1:2, 2:3, 3:4, 4:5, 5:6, 6:6, 7:7, 8:7, 9:9, 10:9, 11:10, 12:10, 13:11, 14:11, 15:12, 16:12, 17:14, 18:14, 19:15, 20:15 };
+const WARLOCK_KNOWN = { 1:2, 2:3, 3:4, 4:5, 5:6, 6:7, 7:8, 8:9, 9:10, 10:10, 11:11, 12:11, 13:12, 14:12, 15:13, 16:13, 17:14, 18:14, 19:15, 20:15 };
+const SORCERER_KNOWN = { 1:2, 2:3, 3:4, 4:5, 5:6, 6:7, 7:8, 8:9, 9:10, 10:11, 11:12, 12:12, 13:13, 14:13, 15:14, 16:14, 17:15, 18:15, 19:15, 20:15 };
 
 export function ensureMagicBookStructure() {
     if (!charData.magic) {
@@ -74,12 +76,8 @@ export function getAvailableSpellSlots() {
     const classKey = charData.origin?.classKey || "none";
     const level = charData.origin?.level || 1;
 
-    if (["wizard", "cleric", "druid", "bard", "sorcerer"].includes(classKey)) {
-        return FULL_CASTER_SLOTS[level] || [];
-    }
-    if (["paladin", "ranger"].includes(classKey)) {
-        return HALF_CASTER_SLOTS[level] || [];
-    }
+    if (["wizard", "cleric", "druid", "bard", "sorcerer"].includes(classKey)) return FULL_CASTER_SLOTS[level] || [];
+    if (["paladin", "ranger"].includes(classKey)) return HALF_CASTER_SLOTS[level] || [];
     if (classKey === "warlock") {
         let count = 1; let slotLvl = 1;
         if (level >= 2) count = 2;
@@ -96,53 +94,25 @@ export function getAvailableSpellSlots() {
 export function getSpellLimits() {
     const classKey = charData.origin?.classKey || "none";
     const level = charData.origin?.level || 1;
-    const primary = getPrimaryCasterMetrics();
 
     let maxCantrips = 0;
     let maxPrepared = 0;
 
-    if (primary.isCaster) {
-        if (["cleric", "wizard", "bard", "druid", "warlock"].includes(classKey)) maxCantrips = 2;
-        else if (classKey === "sorcerer") maxCantrips = 4;
-        else if (["paladin", "ranger"].includes(classKey)) maxCantrips = 0;
-        else maxCantrips = 2;
+    if (["wizard", "cleric", "bard", "druid", "warlock"].includes(classKey)) maxCantrips = level < 4 ? 3 : level < 10 ? 4 : 5;
+    else if (classKey === "sorcerer") maxCantrips = 4;
+    else if (["paladin", "ranger"].includes(classKey)) maxCantrips = 0;
 
-        if (classKey !== "paladin" && classKey !== "ranger") {
-            if (level >= 4) maxCantrips += 1;
-            if (level >= 10) maxCantrips += 1;
-        }
+    if (["wizard", "cleric", "druid", "bard"].includes(classKey)) maxPrepared = FULL_CASTER_PREP[level] || 4;
+    else if (["paladin", "ranger"].includes(classKey)) maxPrepared = HALF_CASTER_PREP[level] || 2;
+    else if (classKey === "warlock") maxPrepared = WARLOCK_KNOWN[level] || 2;
+    else if (classKey === "sorcerer") maxPrepared = SORCERER_KNOWN[level] || 2;
 
-        maxPrepared = Math.max(1, level + primary.mod);
-    }
+    const innate = charData.magic?.innateSpells || [];
+    const currentCantrips = charData.magic?.known.filter(k => spellsData[k]?.level === 0 && !innate.includes(k)).length || 0;
+    const currentSpells = charData.magic?.prepared.filter(k => !innate.includes(k)).length || 0;
 
     return {
-        cantrips: { current: charData.magic?.known.filter(k => spellsData[k]?.level === 0).length || 0, max: maxCantrips },
-        spells: { current: charData.magic?.prepared.length || 0, max: maxPrepared }
+        cantrips: { current: currentCantrips, max: maxCantrips },
+        spells: { current: currentSpells, max: maxPrepared }
     };
-}
-
-export function convertSorceryPoints(slotLevel, toPoints) {
-    ensureMagicBookStructure();
-    const level = charData.origin?.level || 1;
-    const classKey = charData.origin?.classKey || "none";
-
-    if (classKey !== "sorcerer" || level < 2) {
-        alert("Конвертация доступна только Чародеям 2-го уровня и выше!"); return;
-    }
-
-    const costMap = { 1: { sp: 2, minLvl: 2 }, 2: { sp: 3, minLvl: 3 }, 3: { sp: 5, minLvl: 5 }, 4: { sp: 6, minLvl: 7 }, 5: { sp: 7, minLvl: 9 } };
-    const rule = costMap[slotLevel];
-
-    if (!rule || level < rule.minLvl) {
-        alert(`Для работы с ячейками ${slotLevel}-го уровня требуется ${rule?.minLvl || 9}-й уровень Чародея!`); return;
-    }
-
-    if (toPoints) {
-        charData.magic.sorceryPoints = Math.min(level, (charData.magic.sorceryPoints || 0) + slotLevel);
-    } else {
-        if ((charData.magic.sorceryPoints || 0) < rule.sp) {
-            alert(`Недостаточно очков чародейства! Требуется: ${rule.sp} ОЧ.`); return;
-        }
-        charData.magic.sorceryPoints -= rule.sp;
-    }
 }

@@ -36,25 +36,12 @@
         <h2 class="font-group-1">Ячейки заклинаний</h2>
         <div id="spellSlotsContainer" style="display:flex; flex-wrap:wrap; gap:12px; margin-bottom:25px; padding:12px; background:var(--panel-inner); border-radius:8px; border:1px solid var(--border-color);"></div>
 
-        <h2 class="font-group-1">Очки чародейства</h2>
-        <div id="sorceryPointsBox" class="skill-group-card sorcery-points-wrap">
-            <div style="display:flex; align-items:center; gap:10px;">
-                <span class="font-group-2" style="margin:0;">Баланс ОЧ:</span>
-                <input type="number" id="mb_sp_val" class="highlight-box math-val mini" value="0" disabled style="width:50px;">
-            </div>
-            <div style="display:flex; align-items:center; gap:6px; flex-wrap: wrap;">
-                <select id="sp_slot_select" class="font-group-3 input-field" style="width:110px; padding:4px;">
-                    <option value="1">Ячейка 1 ур.</option><option value="2">Ячейка 2 ур.</option><option value="3">Ячейка 3 ур.</option><option value="4">Ячейка 4 ур.</option><option value="5">Ячейка 5 ур.</option>
-                </select>
-                <button id="convertSpBtn" class="step-btn" title="Конвертировать Очки -> Ячейку" style="width:auto; padding:0 10px; background:var(--accent-yellow); color:#0a0d14; font-weight:900;">⇆ в Ячейку</button>
-                <button id="convertSlotBtn" class="step-btn" title="Конвертировать Ячейку -> Очки" style="width:auto; padding:0 10px;">⇄ в ОЧ</button>
-            </div>
-        </div>
+        <h2 id="sorceryTitle" class="font-group-1" style="display: none;">Очки чародейства</h2>
+        <!-- Мёртвый HTML вычищен. Сюда magicbookTab.js динамически вставит красивую плашку, если класс Чародей -->
+        <div id="sorceryPointsBox" class="skill-group-card sorcery-points-wrap" style="display: none; padding: 0; margin-bottom: 25px; border: none; background: transparent;"></div>
     </div>
 
     <div class="ui-col col-desc-features">
-
-        <!-- Изменённый блок: Теперь списки располагаются вертикально один под другим -->
         <div style="display: flex; flex-direction: column; gap: 20px; width: 100%;">
             <div class="backpack-col-box" style="height:360px;">
                 <div class="backpack-header"><span class="title">Подготовленные</span></div>
@@ -66,9 +53,7 @@
                 <div id="bookSpellsContainer" style="flex:1; overflow-y:auto; height:310px;"></div>
             </div>
         </div>
-
     </div>
-
 </div>
 
 <div id="spellPickerModal" class="modal-overlay">
