@@ -391,8 +391,10 @@ function renderEquippedSlots() {
     }
 
     const actSet = eq.activeSet || 1;
-    document.getElementById("weapon_set_1_wrap").style.borderColor = actSet === 1 ? "var(--accent-success)" : "transparent";
-    document.getElementById("weapon_set_2_wrap").style.borderColor = actSet === 2 ? "var(--accent-success)" : "transparent";
+    const wrap1 = document.getElementById("weapon_set_1_wrap");
+    const wrap2 = document.getElementById("weapon_set_2_wrap");
+    if (wrap1) wrap1.style.borderColor = actSet === 1 ? "var(--accent-success)" : "transparent";
+    if (wrap2) wrap2.style.borderColor = actSet === 2 ? "var(--accent-success)" : "transparent";
 
     const weaponSlots = ['set1_main', 'set1_off', 'set2_main', 'set2_off'];
     weaponSlots.forEach(slot => {
