@@ -343,6 +343,28 @@ export function recalculateStats() {
                 }
             }
         }
+    } else {
+        // УЧЕТ ЗАЩИТЫ БЕЗ ДОСПЕХОВ
+        const cls = charData.origin.classKey;
+        const sub = charData.origin.subclassKey;
+        const dexMod = charData.stats.dex.mod;
+
+        let unarmoredAc = 10 + dexMod;
+
+        if (cls === "barbarian") {
+            unarmoredAc = Math.max(unarmoredAc, 10 + dexMod + charData.stats.con.mod);
+        }
+        if (cls === "monk" && !eqShield) {
+            unarmoredAc = Math.max(unarmoredAc, 10 + dexMod + charData.stats.wis.mod);
+        }
+        if (cls === "bard" && sub === "dance" && !eqShield) {
+            unarmoredAc = Math.max(unarmoredAc, 10 + dexMod + charData.stats.cha.mod);
+        }
+        if (cls === "sorcerer" && sub === "draconic") {
+            unarmoredAc = Math.max(unarmoredAc, 10 + dexMod + charData.stats.cha.mod);
+        }
+
+        baseAc = unarmoredAc;
     }
 
     if (eqShield) {
@@ -531,12 +553,13 @@ export function bindStatsEventListeners() {
     });
 }
 
-// Измененная функция рендера навыков. Теперь умеет работать с объектами skillChoice
 const buildSkillChoiceHtml = (choiceDef, idPrefix, title) => {
     const count = typeof choiceDef === 'number' ? choiceDef : (choiceDef.count || 1);
-    const optionsFilter = (typeof choiceDef === 'object' && Array.isArray(choiceDef.options))
+    let optionsFilter = (typeof choiceDef === 'object' && Array.isArray(choiceDef.options))
         ? choiceDef.options
         : Object.keys(charData.skills);
+
+    if (choiceDef.options === "all") optionsFilter = Object.keys(charData.skills);
 
     let opts = `<option value="none">-- Выберите навык --</option>`;
     optionsFilter.forEach(k => {
