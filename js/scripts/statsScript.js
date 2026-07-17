@@ -89,31 +89,25 @@ export function calculateFeatureCharges(featName) {
     const classKey = charData.origin?.classKey;
     const level = charData.origin?.level || 1;
 
-    // Ресурсы классов
     if (classKey === "barbarian" && featName.includes("Ярость")) return level < 3 ? 2 : level < 6 ? 3 : level < 12 ? 4 : level < 17 ? 5 : level < 20 ? 6 : 99;
     if (classKey === "monk" && (featName.includes("Очки фокуса") || featName.includes("Очки сосредоточенности"))) return Math.max(1, level);
     if (classKey === "druid" && featName.includes("Дикий облик")) return level < 20 ? 2 : 99;
     if (classKey === "cleric" && featName.includes("Проведение божественности")) return level < 6 ? 2 : level < 18 ? 3 : 4;
     if (classKey === "paladin" && featName.includes("Проведение божественности")) return level < 11 ? 2 : 3;
 
-    // Воин (Fighter)
     if (classKey === "fighter" && featName.includes("Второе дыхание")) return level < 4 ? 2 : level < 10 ? 3 : 4;
     if (classKey === "fighter" && featName.includes("Всплеск действий")) return level < 17 ? 1 : 2;
     if (classKey === "fighter" && featName.includes("Упорный")) return level < 9 ? 0 : level < 13 ? 1 : level < 17 ? 2 : 3;
     if (featName.includes("Боевое превосходство")) return level < 3 ? 0 : level < 7 ? 4 : level < 15 ? 5 : 6;
 
-    // Паладин (Paladin)
     if (featName.includes("Возложение рук")) return level * 5;
 
-    // Следопыт (Ranger)
     if (featName.includes("Неутомимый")) return pb;
     if (featName.includes("Природная завеса")) return Math.max(1, wisMod);
 
-    // Колдун и Чародей (Warlock / Sorcerer)
     if (featName.includes("Врождённое чародейство")) return 2;
     if (featName.includes("Таинственный арканум")) return 1;
 
-    // Ресурсы черт и других свойств
     if (featName.includes("Псионическая сила")) return pb * 2;
     if (featName.includes("Бардовское вдохновение")) return Math.max(1, chaMod);
     if (featName.includes("Лечащий свет")) return level + 1;
@@ -197,7 +191,6 @@ window.shortRest = function() {
     charData.deathSaves.successes = 0;
     charData.deathSaves.failures = 0;
 
-    // Способности, которые восстанавливаются на Коротком отдыхе
     const shortRestFeatures = [
         "Второе дыхание",
         "Всплеск действий",
@@ -538,9 +531,19 @@ export function bindStatsEventListeners() {
     });
 }
 
-const buildSkillChoiceHtml = (count, idPrefix, title) => {
+// Измененная функция рендера навыков. Теперь умеет работать с объектами skillChoice
+const buildSkillChoiceHtml = (choiceDef, idPrefix, title) => {
+    const count = typeof choiceDef === 'number' ? choiceDef : (choiceDef.count || 1);
+    const optionsFilter = (typeof choiceDef === 'object' && Array.isArray(choiceDef.options))
+        ? choiceDef.options
+        : Object.keys(charData.skills);
+
     let opts = `<option value="none">-- Выберите навык --</option>`;
-    Object.keys(charData.skills).forEach(k => opts += `<option value="${k}">${charData.skills[k].name}</option>`);
+    optionsFilter.forEach(k => {
+        if (charData.skills[k]) {
+            opts += `<option value="${k}">${charData.skills[k].name}</option>`;
+        }
+    });
 
     let html = `<div style="margin-bottom:15px; text-align:left;"><label class="font-group-2" style="color:var(--accent-yellow);">${title} (Выберите ${count}):</label>`;
     for(let i=0; i<count; i++) {

@@ -16,7 +16,6 @@ import { classData } from './js/data/classesData.js';
 import { weaponsData } from './js/data/equipments/weaponsData.js';
 
 // Глобальная зачистка от мусорных цитат из баз данных
-// Используем безопасную сборку регулярного выражения, чтобы избежать синтаксических ошибок
 function stripCitationsGlobal() {
     const citeRegex = new RegExp("\\[c" + "ite: \\d+\\]", "g");
     Object.values(classData).forEach(cls => {
@@ -32,9 +31,56 @@ function stripCitationsGlobal() {
 }
 stripCitationsGlobal();
 
+// Фильтр классовых навыков (запрещает выбирать неклассовые навыки при повышении)
+function restrictClassSkillsGlobal() {
+    const restrictions = {
+        druid: ["perception", "survival", "medicine", "nature", "insight", "religion", "arcana", "animal_handling"],
+        cleric: ["history", "medicine", "insight", "religion", "persuasion"],
+        warlock: ["arcana", "deception", "history", "intimidation", "investigation", "nature", "religion"],
+        monk: ["acrobatics", "athletics", "history", "insight", "religion", "stealth"],
+        paladin: ["athletics", "intimidation", "insight", "medicine", "persuasion", "religion"],
+        rogue: ["acrobatics", "athletics", "perception", "intimidation", "sleight_of_hand", "deception", "insight", "investigation", "stealth", "persuasion"],
+        bard: "all",
+        barbarian: ["athletics", "perception", "survival", "intimidation", "nature", "animal_handling"],
+        wizard: ["history", "medicine", "nature", "insight", "investigation", "religion", "arcana"],
+        fighter: ["acrobatics", "athletics", "perception", "survival", "intimidation", "history", "insight", "persuasion", "animal_handling"],
+        ranger: ["athletics", "perception", "survival", "nature", "insight", "investigation", "stealth", "animal_handling"],
+        sorcerer: ["intimidation", "deception", "insight", "religion", "arcana", "persuasion"]
+    };
+
+    Object.keys(classData).forEach(key => {
+        const cls = classData[key];
+        if (cls.features && cls.features[1]) {
+            cls.features[1].forEach(f => {
+                if (f.name === "Владение навыками" && typeof f.skillChoice === 'number') {
+                    f.skillChoice = { count: f.skillChoice, options: restrictions[key] };
+                }
+            });
+        }
+    });
+
+    // Патч для Мастера Боя (Воин) - выбирает 1 навык из классового списка
+    if (classData.fighter?.subclasses?.battle_master?.features[3]) {
+        classData.fighter.subclasses.battle_master.features[3].forEach(f => {
+            if (f.name === "Ученик войны" && typeof f.skillChoice === 'number') {
+                f.skillChoice = { count: f.skillChoice, options: restrictions.fighter };
+            }
+        });
+    }
+
+    // Патч для Коллегии Знаний (Бард) - выбирает любые 3 навыка
+    if (classData.bard?.subclasses?.lore?.features[3]) {
+        classData.bard.subclasses.lore.features[3].forEach(f => {
+            if (f.name === "Бонусные владения" && typeof f.skillChoice === 'number') {
+                f.skillChoice = { count: f.skillChoice, options: "all" };
+            }
+        });
+    }
+}
+restrictClassSkillsGlobal();
+
 let currentTabUrl = "";
 
-// Таблица опыта по уровням
 const XP_TABLE = [0, 300, 900, 2700, 6500, 14000, 23000, 34000, 48000, 64000, 85000, 100000, 120000, 140000, 165000, 195000, 225000, 265000, 305000, 355000];
 
 async function loadTabContent(tabUrl) {
@@ -99,14 +145,10 @@ window.addEventListener("DOMContentLoaded", () => {
 
         toggleBtn.onclick = () => {
             sidePanel.classList.toggle("mobile-open");
-            toggleBtn.style.bottom = sidePanel.classList.contains("mobile-open") ? "32vh" : "20px";
+            toggleBtn.style.bottom = sidePanel.classList.contains("mobile-open") ? "32vh" : "30px";
         };
     }
 });
-
-// ==========================================
-// ЛОГИКА ХЭДЕРА И АВАТАРА
-// ==========================================
 
 function initHeaderUI() {
     if (!charData.origin) charData.origin = {};
@@ -183,10 +225,6 @@ window.changeXp = function(multiplier) {
         document.dispatchEvent(new Event('charDataUpdated'));
     }
 };
-
-// ==========================================
-// КРОППЕР ИЗОБРАЖЕНИЙ
-// ==========================================
 
 function initAvatarCropper() {
     const container = document.getElementById('avatarContainer');
@@ -304,10 +342,6 @@ function initAvatarCropper() {
         document.dispatchEvent(new Event('charDataUpdated'));
     };
 }
-
-// ==========================================
-// ГЛОБАЛЬНАЯ ЛОГИКА ЗАМЕТОК
-// ==========================================
 
 window.renderGlobalNotes = function() {
     const container = document.getElementById("notesListContainer");
