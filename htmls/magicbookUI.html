@@ -1,0 +1,96 @@
+<div class="magicbook-main-grid">
+
+    <div class="ui-col">
+        <h2 class="font-group-1">Характеристики заклинателя</h2>
+
+        <div id="primaryCasterBox" class="skill-group-card" style="padding: 12px; margin-bottom: 15px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                <span class="font-group-2" style="margin:0; color:var(--text-color);">Основная (по классу): <b id="mb_primary_stat" style="color:var(--accent-yellow);">—</b></span>
+            </div>
+            <div class="magicbook-stats-grid">
+                <div class="combat-box" style="padding:6px;"><span class="font-group-2" style="font-size:11px;">Модификатор</span><div id="mb_primary_mod" class="highlight-box math-val">+0</div></div>
+                <div class="combat-box" style="padding:6px;"><span class="font-group-2" style="font-size:11px;">Сложность (Сл)</span><div id="mb_primary_dc" class="highlight-box math-val">10</div></div>
+                <div class="combat-box" style="padding:6px;"><span class="font-group-2" style="font-size:11px;">Бонус атаки</span><div id="mb_primary_attack" class="highlight-box math-val">+0</div></div>
+            </div>
+        </div>
+
+        <div class="skill-group-card" style="padding: 12px; margin-bottom: 20px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; flex-wrap: wrap; gap: 8px;">
+                <span class="font-group-2" style="margin:0;">Дополнительная:</span>
+                <select id="mb_secondary_select" class="font-group-3 input-field" style="width:140px; padding:4px;">
+                    <option value="none">Нет</option><option value="int">Интеллект</option><option value="wis">Мудрость</option><option value="cha">Харизма</option>
+                </select>
+            </div>
+            <div class="magicbook-stats-grid">
+                <div class="combat-box" style="padding:6px;"><span class="font-group-2" style="font-size:11px;">Модификатор</span><div id="mb_secondary_mod" class="highlight-box math-val">—</div></div>
+                <div class="combat-box" style="padding:6px;"><span class="font-group-2" style="font-size:11px;">Сложность (Сл)</span><div id="mb_secondary_dc" class="highlight-box math-val">—</div></div>
+                <div class="combat-box" style="padding:6px;"><span class="font-group-2" style="font-size:11px;">Бонус атаки</span><div id="mb_secondary_attack" class="highlight-box math-val">—</div></div>
+            </div>
+        </div>
+
+        <div class="magicbook-limits-grid">
+            <div class="combat-box"><span class="font-group-2" style="font-size:12px; text-align:center;">Известно заговоров</span><div id="mb_cantrips_limit" class="highlight-box large" style="min-height:36px;">0 / 0</div></div>
+            <div class="combat-box"><span class="font-group-2" style="font-size:12px; text-align:center;">Подготовлено заклинаний</span><div id="mb_spells_limit" class="highlight-box large" style="min-height:36px;">0 / 0</div></div>
+        </div>
+
+        <h2 class="font-group-1">Ячейки заклинаний</h2>
+        <div id="spellSlotsContainer" style="display:flex; flex-wrap:wrap; gap:12px; margin-bottom:25px; padding:12px; background:var(--panel-inner); border-radius:8px; border:1px solid var(--border-color);"></div>
+
+        <h2 class="font-group-1">Очки чародейства</h2>
+        <div id="sorceryPointsBox" class="skill-group-card sorcery-points-wrap">
+            <div style="display:flex; align-items:center; gap:10px;">
+                <span class="font-group-2" style="margin:0;">Баланс ОЧ:</span>
+                <input type="number" id="mb_sp_val" class="highlight-box math-val mini" value="0" disabled style="width:50px;">
+            </div>
+            <div style="display:flex; align-items:center; gap:6px; flex-wrap: wrap;">
+                <select id="sp_slot_select" class="font-group-3 input-field" style="width:110px; padding:4px;">
+                    <option value="1">Ячейка 1 ур.</option><option value="2">Ячейка 2 ур.</option><option value="3">Ячейка 3 ур.</option><option value="4">Ячейка 4 ур.</option><option value="5">Ячейка 5 ур.</option>
+                </select>
+                <button id="convertSpBtn" class="step-btn" title="Конвертировать Очки -> Ячейку" style="width:auto; padding:0 10px; background:var(--accent-yellow); color:#0a0d14; font-weight:900;">⇆ в Ячейку</button>
+                <button id="convertSlotBtn" class="step-btn" title="Конвертировать Ячейку -> Очки" style="width:auto; padding:0 10px;">⇄ в ОЧ</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="ui-col col-desc-features">
+
+        <!-- Изменённый блок: Теперь списки располагаются вертикально один под другим -->
+        <div style="display: flex; flex-direction: column; gap: 20px; width: 100%;">
+            <div class="backpack-col-box" style="height:360px;">
+                <div class="backpack-header"><span class="title">Подготовленные</span></div>
+                <div id="preparedSpellsContainer" style="flex:1; overflow-y:auto; height:310px;"></div>
+            </div>
+
+            <div class="backpack-col-box" style="height:360px;">
+                <div class="backpack-header" style="border-left-color:var(--accent-yellow);"><span class="title">Заклинания в книге</span></div>
+                <div id="bookSpellsContainer" style="flex:1; overflow-y:auto; height:310px;"></div>
+            </div>
+        </div>
+
+    </div>
+
+</div>
+
+<div id="spellPickerModal" class="modal-overlay">
+    <div class="modal-content spell-picker-modal-content">
+        <h3 class="font-group-1" style="color:var(--accent-yellow); margin:0 0 15px 0; border:none; text-align:center; width: 100%;">База заклинаний D&D 2024</h3>
+
+        <div class="spell-modal-body-grid">
+            <div class="spell-modal-list-col">
+                <div id="spellPickerContainer" style="height: 380px; max-height: 380px; overflow-y:auto; padding-right: 6px; display:flex; flex-direction:column;"></div>
+            </div>
+
+            <div class="spell-modal-inspector-col">
+                <h4 class="font-group-2" style="color:#fff; margin-bottom:8px; border-bottom: 1px solid var(--border-color); padding-bottom: 4px;">Информация о заклинании</h4>
+                <div id="spellModalInspectorPanel" class="inspector-box font-group-3" style="height: 340px; max-height: 340px; overflow-y: auto; padding: 12px; border-left: 3px solid var(--accent-yellow); background: #11141a;">
+                    <p style="color:var(--text-muted); font-style:italic;">Наведите мышь на заклинание в списке слева, чтобы прочитать его полное описание здесь.</p>
+                </div>
+            </div>
+        </div>
+
+        <div style="display:flex; gap:12px; width:100%; margin-top: 20px;">
+            <button id="spellPickerCancelBtn" class="modal-btn" style="flex:1; background:#2e3545;">Отмена</button>
+            <button id="spellPickerConfirmBtn" class="modal-btn" style="flex:1; background:var(--accent-yellow); color:#0a0d14;">Добавить выбранные</button>
+        </div>
+    </div>
+</div>

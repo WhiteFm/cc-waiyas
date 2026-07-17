@@ -1,0 +1,219 @@
+<div class="backpack-main-grid">
+
+    <div class="ui-col col-equipped">
+        <h2 class="font-group-1">Экипировка</h2>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; margin-bottom: 30px; text-align: center; justify-items: center; align-items: center;">
+
+            <div style="grid-column: 2; width: 100%;">
+                <div class="equipped-slot interactive-node" id="slot_head">
+                    <label>Шлем</label>
+                    <div class="equipped-item-display" id="disp_head">Пусто</div>
+                </div>
+            </div>
+
+            <div style="grid-column: 1; width: 100%;">
+                <div class="equipped-slot interactive-node" id="slot_cloak">
+                    <label>Плащ</label>
+                    <div class="equipped-item-display" id="disp_cloak">Пусто</div>
+                </div>
+            </div>
+            <div style="grid-column: 2; width: 100%;">
+                <div class="equipped-slot interactive-node" id="slot_armor">
+                    <label>Доспех</label>
+                    <div class="equipped-item-display" id="disp_armor">Пусто</div>
+                </div>
+            </div>
+            <div style="grid-column: 3; width: 100%;">
+                <div class="equipped-slot interactive-node" id="slot_amulet">
+                    <label>Амулет</label>
+                    <div class="equipped-item-display" id="disp_amulet">Пусто</div>
+                </div>
+            </div>
+
+            <div style="grid-column: 1; width: 100%;">
+                <div class="equipped-slot interactive-node" id="slot_rings_0">
+                    <label>Кольцо Правое</label>
+                    <div class="equipped-item-display" id="disp_rings_0">Пусто</div>
+                </div>
+            </div>
+            <div style="grid-column: 2; width: 100%;">
+                <div class="equipped-slot interactive-node" id="slot_belt">
+                    <label>Пояс</label>
+                    <div class="equipped-item-display" id="disp_belt">Пусто</div>
+                </div>
+            </div>
+            <div style="grid-column: 3; width: 100%;">
+                <div class="equipped-slot interactive-node" id="slot_rings_1">
+                    <label>Кольцо Левое</label>
+                    <div class="equipped-item-display" id="disp_rings_1">Пусто</div>
+                </div>
+            </div>
+
+            <div style="grid-column: 2; width: 100%;">
+                <div class="equipped-slot interactive-node" id="slot_boots">
+                    <label>Поножи</label>
+                    <div class="equipped-item-display" id="disp_boots">Пусто</div>
+                </div>
+            </div>
+
+        </div>
+
+        <h2 class="font-group-1">Оружие и Щиты</h2>
+
+        <div style="margin-bottom: 25px; text-align: center;">
+            <div style="margin-bottom: 20px;">
+                <h3 class="font-group-2" style="color: var(--accent-yellow); margin-bottom: 8px;">Набор 1</h3>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                    <div class="equipped-slot interactive-node" id="slot_w_set1_main">
+                        <label>Правая рука</label>
+                        <div class="equipped-item-display" id="disp_w_set1_main" style="flex-direction: column; justify-content: center; gap: 4px;">Пусто</div>
+                    </div>
+                    <div class="equipped-slot interactive-node" id="slot_w_set1_off">
+                        <label>Левая рука</label>
+                        <div class="equipped-item-display" id="disp_w_set1_off" style="flex-direction: column; justify-content: center; gap: 4px;">Пусто</div>
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <h3 class="font-group-2" style="color: var(--accent-yellow); margin-bottom: 8px;">Набор 2</h3>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                    <div class="equipped-slot interactive-node" id="slot_w_set2_main">
+                        <label>Правая рука</label>
+                        <div class="equipped-item-display" id="disp_w_set2_main" style="flex-direction: column; justify-content: center; gap: 4px;">Пусто</div>
+                    </div>
+                    <div class="equipped-slot interactive-node" id="slot_w_set2_off">
+                        <label>Левая рука</label>
+                        <div class="equipped-item-display" id="disp_w_set2_off" style="flex-direction: column; justify-content: center; gap: 4px;">Пусто</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="ui-col col-backpack">
+        <h2 class="font-group-1">Инвентарь и Грузоподъёмность</h2>
+
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 20px;">
+            <div class="skill-group-card" style="margin: 0; padding: 10px 12px;">
+                <span class="font-group-2" style="font-size: 12px; margin-bottom: 4px;">Размер</span>
+                <div id="backpackSizeDisplay" class="highlight-box large" style="min-height: 38px; font-size: 14px;">Средний</div>
+            </div>
+
+            <div class="skill-group-card" style="margin: 0; padding: 10px 12px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                    <span class="font-group-2" style="font-size: 12px; margin: 0;">Грузоподъёмность</span>
+                    <span id="capacityStatusLabel" style="font-size: 11px; font-weight: bold; color: var(--accent-success);">В норме</span>
+                </div>
+                <div id="weightCounterDisplay" class="highlight-box math-val" style="min-height: 38px; font-size: 14px;">0 / 150 фнт.</div>
+            </div>
+
+            <div class="skill-group-card" style="margin: 0; padding: 10px 12px;">
+                <span class="font-group-2" style="font-size: 12px; margin-bottom: 4px;">Толчок / Подъём</span>
+                <div id="pushCounterDisplay" class="highlight-box math-val" style="min-height: 38px; font-size: 14px; color: var(--accent-yellow) !important; border-color: var(--accent-yellow) !important;">до 300 фнт.</div>
+            </div>
+        </div>
+
+        <div class="backpack-inner-grid" style="margin-bottom: 24px;">
+            <div class="backpack-col-box" style="grid-column: span 2;">
+                <div class="backpack-header" style="border-left-color: var(--accent-yellow);">
+                    <span class="title">Хранилище</span>
+                    <button id="addStorageBtn" class="backpack-add-btn" title="Добавить предмет">+</button>
+                </div>
+                <div id="storageListContainer" style="overflow-y: auto; max-height: 250px; background: #11141a;"></div>
+            </div>
+        </div>
+
+        <div class="backpack-inner-grid" style="margin-bottom: 24px;">
+            <div class="backpack-col-box">
+                <div class="backpack-header" style="border-left-color: var(--accent-success);">
+                    <span class="title">Боеприпасы</span>
+                </div>
+                <div id="ammunitionListContainer" style="flex: 1; overflow-y: auto; max-height: 200px; background: #11141a;"></div>
+            </div>
+
+            <div class="backpack-col-box">
+                <div class="backpack-header" style="border-left-color: #9f7aea;">
+                    <span class="title">Сумка Зелий</span>
+                </div>
+                <div id="potionBagContainer" style="flex: 1; overflow-y: auto; max-height: 200px; background: #11141a;"></div>
+            </div>
+
+            <div class="backpack-col-box" style="grid-column: span 2;">
+                <div class="backpack-header" style="border-left-color: var(--text-muted);">
+                    <span class="title">Снаряжение и Инструменты</span>
+                </div>
+                <div id="equipmentListContainer" style="flex: 1; overflow-y: auto; max-height: 200px; background: #11141a;"></div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<div id="itemPickerModal" class="modal-overlay">
+    <div class="modal-content" style="width: 95%; max-width: 960px; text-align: left; overflow: hidden;">
+        <h3 class="font-group-1" style="color: var(--accent-yellow); margin-top: 0; margin-bottom: 15px; text-align: center; border: none; padding: 0;">База предметов</h3>
+
+        <div style="display: flex; gap: 20px; height: 430px; margin-bottom: 20px; justify-content: center;">
+            <div style="width: 550px; display: flex; flex-direction: column; gap: 10px; flex-shrink: 0;">
+                <input type="text" id="itemSearchInput" class="font-group-3 input-field" placeholder="Поиск предмета по названию..." style="width: 100%; padding: 12px; font-size: 15px; box-sizing: border-box;">
+
+                <div style="background: #11141a; border: 1px solid var(--border-color); border-radius: 8px; flex: 1; overflow-y: auto; padding: 10px;" id="modalItemsList"></div>
+            </div>
+
+            <div style="width: 330px; display: flex; flex-direction: column; background: #11141a; border: 1px solid var(--border-color); border-radius: 8px; padding: 15px; flex-shrink: 0; box-sizing: border-box;">
+                <h4 class="font-group-2" style="text-align: center; margin-top: 0; margin-bottom: 10px; color: var(--accent-success); border: none; padding: 0;">Корзина</h4>
+
+                <div id="cartItemsList" style="flex: 1; overflow-y: auto; margin-bottom: 10px; display: flex; flex-direction: column; gap: 8px;"></div>
+
+                <div style="text-align: right; border-top: 1px solid var(--border-color); padding-top: 12px; display: flex; justify-content: space-between; align-items: center;">
+                    <span class="font-group-2" style="margin: 0; color: var(--text-muted); font-size: 13px;">Общая стоимость:</span>
+                    <span id="cartTotalCost" class="highlight-box math-val mini" style="display: inline-block; width: auto; padding: 5px 12px; font-size: 13px;">0 ЗМ</span>
+                </div>
+            </div>
+        </div>
+
+        <div style="display: flex; gap: 10px; width: 100%;">
+            <button id="itemPickerCancelBtn" class="modal-btn" style="flex: 1; background: #2e3545; color: white;">Отмена</button>
+            <button id="itemPickerConfirmBtn" class="modal-btn" style="flex: 1; background: var(--accent-yellow); color: #0a0d14;">Добавить в Хранилище</button>
+        </div>
+    </div>
+</div>
+
+<div id="ringReplaceModal" class="modal-overlay">
+    <div class="modal-content" style="width: 400px; text-align: center;">
+        <h3 class="font-group-1" style="color: var(--accent-yellow); margin-top: 0; margin-bottom: 15px; border:none; padding:0;">Замена кольца</h3>
+        <p class="font-group-3" style="color: var(--text-muted); margin-bottom: 20px;">У вас уже надето два кольца. Какое из них вы хотите снять и отправить в Хранилище?</p>
+        <div style="display: flex; gap: 10px; margin-bottom: 20px; width: 100%;">
+            <button id="ringReplaceBtn_0" class="modal-btn" style="flex: 1; padding: 10px; font-size: 13px;"></button>
+            <button id="ringReplaceBtn_1" class="modal-btn" style="flex: 1; padding: 10px; font-size: 13px;"></button>
+        </div>
+        <button id="ringReplaceCancelBtn" class="modal-btn" style="width: 100%; background: #2e3545;">Отмена</button>
+    </div>
+</div>
+
+<div id="weaponEquipModal" class="modal-overlay">
+    <div class="modal-content" style="width: 450px; text-align: center;">
+        <h3 class="font-group-1" style="color: var(--accent-yellow); margin-top: 0; margin-bottom: 15px; border:none; padding:0;">Экипировка оружия / щита</h3>
+        <p class="font-group-3" style="color: var(--text-muted); margin-bottom: 20px;">Выберите набор и руку, в которую вы хотите взять этот предмет:</p>
+
+        <div style="background: rgba(0,0,0,0.2); padding: 15px; border-radius: 8px; margin-bottom: 15px; width: 100%;">
+            <h4 class="font-group-2" style="text-align: center; color: var(--text-color);">Набор 1</h4>
+            <div style="display: flex; gap: 10px; margin-top: 10px;">
+                <button id="weq_set1_main" class="modal-btn" style="flex: 1; padding: 10px; font-size: 12px;">Правая</button>
+                <button id="weq_set1_off" class="modal-btn" style="flex: 1; padding: 10px; font-size: 12px;">Левая</button>
+            </div>
+        </div>
+
+        <div style="background: rgba(0,0,0,0.2); padding: 15px; border-radius: 8px; margin-bottom: 20px; width: 100%;">
+            <h4 class="font-group-2" style="text-align: center; color: var(--text-color);">Набор 2</h4>
+            <div style="display: flex; gap: 10px; margin-top: 10px;">
+                <button id="weq_set2_main" class="modal-btn" style="flex: 1; padding: 10px; font-size: 12px;">Правая</button>
+                <button id="weq_set2_off" class="modal-btn" style="flex: 1; padding: 10px; font-size: 12px;">Левая</button>
+            </div>
+        </div>
+
+        <button id="weaponEquipCancelBtn" class="modal-btn" style="width: 100%; background: #2e3545;">Отмена</button>
+    </div>
+</div>

@@ -1,0 +1,319 @@
+<div class="three-column-grid">
+
+    <div class="ui-col col-origin">
+        <h2 class="font-group-1">Происхождение</h2>
+
+        <div class="form-group">
+            <label class="font-group-2" data-inspector="charName">Имя персонажа</label>
+            <input type="text" id="charName" class="font-group-3 input-field" placeholder="Имя героя...">
+        </div>
+
+        <div class="form-group">
+            <label class="font-group-2" data-inspector="class">Класс</label>
+            <select id="classSelect" class="font-group-3 input-field"></select>
+        </div>
+
+        <div class="form-group">
+            <label class="font-group-2" data-inspector="subclass">Подкласс</label>
+            <select id="subclassSelect" disabled class="font-group-3 input-field">
+                <option value="none">Нет</option>
+            </select>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 10px;">
+            <label class="font-group-2" data-inspector="race">Вид/раса</label>
+            <select id="raceSelect" class="font-group-3 input-field"></select>
+        </div>
+
+        <div class="features-list-box" style="margin-bottom: 20px;">
+            <label class="font-group-2" data-inspector="Список пассивных особенностей, полученных от вида.">Особенности</label>
+            <div id="assignedFeaturesDisplay" class="dynamic-list font-group-3" style="min-height: 50px;"></div>
+        </div>
+
+        <div class="form-group">
+            <label class="font-group-2" data-inspector="background">Предыстория</label>
+            <select id="backgroundSelect" class="font-group-3 input-field"></select>
+        </div>
+
+       <div class="form-group">
+            <label class="font-group-2" data-inspector="feat">Выбор черт</label>
+            <select id="featSelect" class="font-group-3 input-field">
+                <option value="none">-- Выберите черту --</option>
+            </select>
+            <button id="addFeatBtn" class="step-btn" style="width:100%; margin-top: 8px; border-radius: 8px; background: var(--panel-inner); border-color: var(--border-color);">Добавить черту</button>
+        </div>
+
+        <div class="features-list-box">
+            <label class="font-group-2" data-inspector="Здесь отображаются добавленные вами черты. Нажмите на черту, чтобы удалить её.">Черты</label>
+            <div id="selectedFeatsList" class="dynamic-list font-group-3" style="min-height: 90px; display: flex; flex-wrap: wrap; gap: 8px; align-content: flex-start;"></div>
+        </div>
+
+        <div class="form-group" style="margin-top: 20px;">
+            <label class="font-group-2" data-inspector="tools">Выбор инструментов</label>
+            <select id="instrumentSelect" class="font-group-3 input-field">
+                <option value="none">-- Выберите инструмент --</option>
+            </select>
+            <button id="addInstrumentBtn" class="step-btn" style="width:100%; margin-top: 8px; border-radius: 8px; background: var(--panel-inner); border-color: var(--border-color);">Добавить инструмент</button>
+        </div>
+
+        <div class="features-list-box">
+            <label class="font-group-2" data-inspector="Здесь отображаются инструменты, которыми владеет ваш герой. Нажмите на плашку, чтобы удалить её.">Владение инструментами</label>
+            <div id="selectedInstrumentsList" class="dynamic-list font-group-3" style="min-height: 70px; display: flex; flex-wrap: wrap; gap: 8px; align-content: flex-start;"></div>
+        </div>
+
+        <div class="form-group" style="margin-top: 20px;">
+            <label class="font-group-2" data-inspector="languages">Выбор языков</label>
+            <select id="languageSelect" class="font-group-3 input-field">
+                <option value="none">-- Выберите язык --</option>
+            </select>
+            <button id="addLanguageBtn" class="step-btn" style="width:100%; margin-top: 8px; border-radius: 8px; background: var(--panel-inner); border-color: var(--border-color);">Добавить язык</button>
+        </div>
+
+        <div class="features-list-box">
+            <label class="font-group-2" data-inspector="Здесь отображаются известные вашему персонажу языки. Нажмите на плашку с языком, чтобы забыть его.">Владение языками</label>
+            <div id="selectedLanguagesList" class="dynamic-list font-group-3" style="min-height: 70px; display: flex; flex-wrap: wrap; gap: 8px; align-content: flex-start;"></div>
+        </div>
+
+    </div>
+
+    <div class="ui-col col-stats">
+        <h2 class="font-group-1">Характеристики</h2>
+
+        <div class="flex-row" style="margin-bottom: 20px; align-items: flex-end;">
+            <div class="form-group" style="flex: 1; margin-bottom: 0;">
+                <label class="font-group-2 text-center" data-inspector="level">Уровень персонажа</label>
+                <div class="stepper-input">
+                    <button class="step-btn minus" tabindex="-1">−</button>
+                    <input type="number" id="charLevel" value="1" min="1" max="20" class="highlight-box math-val text-center">
+                    <button class="step-btn plus" tabindex="-1">+</button>
+                </div>
+            </div>
+            <div class="form-group" style="flex: 1; margin-bottom: 0;">
+                <label class="font-group-2 text-center" data-inspector="pb">Бонус мастерства</label>
+                <input type="text" id="profBonusDisplay" value="+2" disabled class="highlight-box math-val text-center">
+            </div>
+        </div>
+
+        <div class="stats-table">
+            <div class="table-header font-group-2 stats-table-grid" style="margin-bottom:0;">
+                <span>Характеристика</span><span>База</span><span>Итог (Мод)</span><span>Цена</span>
+            </div>
+            <div class="stat-row-item stats-table-grid" data-inspector="str">
+                <label class="font-group-2" style="margin:0;">Сила</label>
+                <div class="stepper-input">
+                    <button class="step-btn minus" tabindex="-1">−</button>
+                    <input type="number" class="highlight-box math-val" id="stat_str" value="8" min="0">
+                    <button class="step-btn plus" tabindex="-1">+</button>
+                </div>
+                <div class="highlight-box math-val" id="mod_str">+0</div>
+                <div class="highlight-box math-val" id="cost_str">0</div>
+            </div>
+            <div class="stat-row-item stats-table-grid" data-inspector="dex">
+                <label class="font-group-2" style="margin:0;">Ловкость</label>
+                <div class="stepper-input">
+                    <button class="step-btn minus" tabindex="-1">−</button>
+                    <input type="number" class="highlight-box math-val" id="stat_dex" value="8" min="0">
+                    <button class="step-btn plus" tabindex="-1">+</button>
+                </div>
+                <div class="highlight-box math-val" id="mod_dex">+0</div>
+                <div class="highlight-box math-val" id="cost_dex">0</div>
+            </div>
+            <div class="stat-row-item stats-table-grid" data-inspector="con">
+                <label class="font-group-2" style="margin:0;">Телосложение</label>
+                <div class="stepper-input">
+                    <button class="step-btn minus" tabindex="-1">−</button>
+                    <input type="number" class="highlight-box math-val" id="stat_con" value="8" min="0">
+                    <button class="step-btn plus" tabindex="-1">+</button>
+                </div>
+                <div class="highlight-box math-val" id="mod_con">+0</div>
+                <div class="highlight-box math-val" id="cost_con">0</div>
+            </div>
+            <div class="stat-row-item stats-table-grid" data-inspector="int">
+                <label class="font-group-2" style="margin:0;">Интеллект</label>
+                <div class="stepper-input">
+                    <button class="step-btn minus" tabindex="-1">−</button>
+                    <input type="number" class="highlight-box math-val" id="stat_int" value="8" min="0">
+                    <button class="step-btn plus" tabindex="-1">+</button>
+                </div>
+                <div class="highlight-box math-val" id="mod_int">+0</div>
+                <div class="highlight-box math-val" id="cost_int">0</div>
+            </div>
+            <div class="stat-row-item stats-table-grid" data-inspector="wis">
+                <label class="font-group-2" style="margin:0;">Мудрость</label>
+                <div class="stepper-input">
+                    <button class="step-btn minus" tabindex="-1">−</button>
+                    <input type="number" class="highlight-box math-val" id="stat_wis" value="8" min="0">
+                    <button class="step-btn plus" tabindex="-1">+</button>
+                </div>
+                <div class="highlight-box math-val" id="mod_wis">+0</div>
+                <div class="highlight-box math-val" id="cost_wis">0</div>
+            </div>
+            <div class="stat-row-item stats-table-grid" data-inspector="cha">
+                <label class="font-group-2" style="margin:0;">Харизма</label>
+                <div class="stepper-input">
+                    <button class="step-btn minus" tabindex="-1">−</button>
+                    <input type="number" class="highlight-box math-val" id="stat_cha" value="8" min="0">
+                    <button class="step-btn plus" tabindex="-1">+</button>
+                </div>
+                <div class="highlight-box math-val" id="mod_cha">+0</div>
+                <div class="highlight-box math-val" id="cost_cha">0</div>
+            </div>
+        </div>
+        <div class="font-group-3" style="text-align: right; margin-top: 6px;">Всего потрачено очков: <span id="pbTotal">0</span>/27</div>
+
+        <div class="form-group" style="margin-top: 20px;">
+            <label class="font-group-2" data-inspector="hp">Здоровье и Кости хитов</label>
+            <div class="health-grid" style="grid-template-columns: 1fr 1fr; gap: 15px;">
+                <div class="health-col">
+                    <span class="health-label">Максимум ХП</span>
+                    <input type="number" id="hpMax" value="10" disabled class="highlight-box math-val text-center">
+                </div>
+                <div class="health-col">
+                    <span class="health-label">Кости хитов</span>
+                    <div id="hitDiceDisplay" class="highlight-box math-val" style="justify-content: center;">1d8</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="flex-row" style="margin-top: 25px; gap: 12px; align-items: stretch;">
+
+            <div class="skill-group-card" style="flex: 1; margin-bottom: 0; display: flex; flex-direction: column;">
+                <div class="skill-stat-header" data-inspector="armorProf">
+                    <span class="stat-name" style="font-size: 12.5px; white-space: nowrap;">Владение доспехами</span>
+                </div>
+                <div style="flex: 1; display: flex; flex-direction: column; justify-content: space-between;">
+                    <div class="skill-item-row interactive-node" data-inspector="Лёгкие доспехи" style="padding: 8px 10px;">
+                        <label class="custom-cb" style="width: 100%;"><input type="checkbox" id="prof_armor_light"><span></span> Лёгкие доспехи</label>
+                    </div>
+                    <div class="skill-item-row interactive-node" data-inspector="Средние доспехи" style="padding: 8px 10px;">
+                        <label class="custom-cb" style="width: 100%;"><input type="checkbox" id="prof_armor_medium"><span></span> Средние доспехи</label>
+                    </div>
+                    <div class="skill-item-row interactive-node" data-inspector="Тяжёлые доспехи" style="padding: 8px 10px;">
+                        <label class="custom-cb" style="width: 100%;"><input type="checkbox" id="prof_armor_heavy"><span></span> Тяжёлые доспехи</label>
+                    </div>
+                    <div class="skill-item-row interactive-node" style="border-bottom: none; padding: 8px 10px;" data-inspector="Щиты">
+                        <label class="custom-cb" style="width: 100%;"><input type="checkbox" id="prof_armor_shield"><span></span> Щиты</label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="skill-group-card" style="flex: 1.15; margin-bottom: 0; display: flex; flex-direction: column;">
+                <div class="skill-stat-header" data-inspector="weaponProf">
+                    <span class="stat-name" style="font-size: 12.5px; white-space: nowrap;">Владение оружием</span>
+                </div>
+                <div style="flex: 1; display: flex; flex-direction: column; justify-content: space-between;">
+
+                    <div class="skill-item-row interactive-node" style="justify-content: space-between; padding: 8px 10px;"
+                         data-inspector="<b>Владение Простым оружием:</b><br><br>⭘ — Нет владения<br>◆ — Владение легким и фехтовальным<br>★ — Владение всеми простыми видами">
+                        <span class="skill-name" style="font-weight: 600; font-size: 13px; color: #cbd5e1;">Простое</span>
+                        <div class="state-btn-group weapon-st-group" data-weapon="simple" style="display: flex; gap: 3px;">
+                            <button class="st-btn active" data-state="0" title="Нет владения">⭘</button>
+                            <button class="st-btn" data-state="1" title="Владение легким и фехтовальным">◆</button>
+                            <button class="st-btn" data-state="2" title="Владение всеми">★</button>
+                        </div>
+                    </div>
+
+                    <div class="skill-item-row interactive-node" style="justify-content: space-between; padding: 8px 10px;"
+                         data-inspector="<b>Владение Воинским оружием:</b><br><br>⭘ — Нет владения<br>◆ — Владение легким и фехтовальным<br>★ — Владение всеми воинскими видами">
+                        <span class="skill-name" style="font-weight: 600; font-size: 13px; color: #cbd5e1;">Воинское</span>
+                        <div class="state-btn-group weapon-st-group" data-weapon="martial" style="display: flex; gap: 3px;">
+                            <button class="st-btn active" data-state="0" title="Нет владения">⭘</button>
+                            <button class="st-btn" data-state="1" title="Владение легким и фехтовальным">◆</button>
+                            <button class="st-btn" data-state="2" title="Владение всеми">★</button>
+                        </div>
+                    </div>
+
+                    <div class="skill-item-row interactive-node" style="border-bottom: none; padding: 9px 10px;"
+                         data-inspector="<b>Другое оружие:</b> Включает нестандартные типы оружия (автоматически активируется чертой «Дебошир»).">
+                        <label class="custom-cb" style="width: 100%;"><input type="checkbox" id="prof_weapon_other"><span></span> Другое</label>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="ui-col col-desc-features">
+        <h2 class="font-group-1">Активные умения</h2>
+        <div id="activeFeaturesList" class="dynamic-list font-group-3" style="max-height: 160px; overflow-y: auto; margin-bottom: 16px;"></div>
+
+        <h2 class="font-group-1">Пассивные умения</h2>
+        <div id="passiveFeaturesList" class="dynamic-list font-group-3" style="max-height: 160px; overflow-y: auto; margin-bottom: 16px;"></div>
+
+        <h2 class="font-group-1">Единоразовые умения</h2>
+        <div id="oneTimeFeaturesList" class="dynamic-list font-group-3" style="max-height: 140px; overflow-y: auto; margin-bottom: 16px;"></div>
+    </div>
+
+</div>
+
+<!-- Все модалки (предыстории, статы, черты и т.д.) -->
+<div id="backgroundModal" class="modal-overlay">
+    <div class="modal-content" style="width: 460px; max-height: 85vh; overflow-y: auto;">
+        <div id="backgroundModalBody" style="width: 100%;"></div>
+        <div style="display: flex; gap: 10px; width: 100%; margin-top: 10px;">
+            <button id="cancelBackgroundBtn" class="modal-btn" style="flex: 1; background: #2e3545; color: white;">Отмена</button>
+            <button id="confirmBackgroundBtn" class="modal-btn" style="flex: 1; background: var(--accent-yellow); color: #0a0d14;">Применить</button>
+        </div>
+    </div>
+</div>
+
+<div id="hpLevelUpModal" class="modal-overlay">
+    <div class="modal-content" style="width: 420px; text-align: center;">
+        <h3 class="font-group-1" style="color: var(--accent-success); margin-top: 0; margin-bottom: 10px; border:none; padding:0;">Новый уровень!</h3>
+
+        <div id="levelUpDynamicContent" style="width: 100%;">
+            <p id="hpLevelUpText" class="font-group-3" style="color: var(--text-muted); margin-bottom: 15px; font-size: 13px;"></p>
+        </div>
+
+        <div style="margin-bottom: 20px; width: 100%;">
+            <label class="font-group-2" style="text-align: center; margin-bottom: 6px;">Бросок кости хитов (или среднее):</label>
+            <input type="number" id="hpLevelRollInput" class="highlight-box math-val text-center" style="width: 100%; height: 45px; font-size: 18px;" value="5">
+        </div>
+        <div style="display: flex; gap: 10px; width: 100%;">
+            <button id="hpLevelCancelBtn" class="modal-btn" style="flex: 1; background: #2e3545; color: white;">Отмена</button>
+            <button id="hpLevelConfirmBtn" class="modal-btn" style="flex: 1; background: var(--accent-success); color: #0a0d14;">Применить</button>
+        </div>
+    </div>
+</div>
+
+<div id="raceChoiceModal" class="modal-overlay">
+    <div class="modal-content" style="width: calc(100% - 40px); max-width: 1700px; text-align: left; max-height: 85vh; overflow-y: auto;">
+        <h3 id="raceModalTitle" class="font-group-1" style="color: var(--accent); margin-top: 0; margin-bottom: 15px; text-align: center; border-left: none;">Название Расы</h3>
+        <div id="raceModalDesc" class="font-group-3" style="color: var(--text-muted); margin-bottom: 25px; text-align: justify;">Описание расы...</div>
+        <div id="raceModalChoicesContainer" style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 25px;"></div>
+        <div style="display: flex; gap: 15px; width: 100%; max-width: 500px; margin: 0 auto;">
+            <button id="raceModalCancelBtn" class="modal-btn" style="flex: 1; background: #2e3545; color: white;">Отмена</button>
+            <button id="raceModalConfirmBtn" class="modal-btn" style="flex: 1;">Выбрать</button>
+        </div>
+    </div>
+</div>
+
+<div id="classChoiceModal" class="modal-overlay">
+    <div class="modal-content" style="width: calc(100% - 40px); max-width: 1700px; text-align: left; max-height: 85vh; overflow-y: auto;">
+        <h3 id="classModalTitle" class="font-group-1" style="color: var(--accent); margin-top: 0; margin-bottom: 15px; text-align: center; border-left: none;">Название Класса</h3>
+        <div id="classModalDesc" class="font-group-3" style="color: var(--text-muted); margin-bottom: 25px; text-align: justify;">Описание класса...</div>
+        <div style="display: flex; gap: 15px; width: 100%; max-width: 500px; margin: 0 auto;">
+            <button id="classModalCancelBtn" class="modal-btn" style="flex: 1; background: #2e3545; color: white;">Отмена</button>
+            <button id="classModalConfirmBtn" class="modal-btn" style="flex: 1;">Выбрать</button>
+        </div>
+    </div>
+</div>
+
+<div id="universalFeatModal" class="modal-overlay">
+    <div class="modal-content" style="width: 540px; max-height: 85vh; overflow-y: auto; text-align: left;">
+        <h3 id="ufModalTitle" class="font-group-1" style="color: var(--accent-yellow); margin-top: 0; margin-bottom: 15px; text-align: center; border:none; padding:0;">Название черты</h3>
+        <div id="ufModalDesc" class="font-group-3" style="color: var(--text-color); margin-bottom: 20px; text-align: justify; font-size: 13.5px; background: rgba(0,0,0,0.2); padding: 12px; border-radius: 6px; border-left: 3px solid var(--accent-yellow);">
+            <!-- Описание черты генерируется через JS -->
+        </div>
+
+        <div id="ufModalDynamicChoices" style="margin-bottom: 25px; width: 100%;">
+            <!-- Динамические селекты и чекбоксы генерируются через JS -->
+        </div>
+
+        <div style="display: flex; gap: 10px; width: 100%;">
+            <button id="ufModalCancelBtn" class="modal-btn" style="flex: 1; background: #2e3545; color: white;">Отмена</button>
+            <button id="ufModalConfirmBtn" class="modal-btn" style="flex: 1; background: var(--accent-yellow); color: #0a0d14;">Подтвердить</button>
+        </div>
+    </div>
+</div>

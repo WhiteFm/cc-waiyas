@@ -1,0 +1,24 @@
+<div class="ui-col" style="max-width: 860px; margin: 0 auto;" id="settingsContainer">
+    <h2 class="font-group-1" style="border-left: none; text-align: center;">Управление и Настройки</h2>
+    <p class="font-group-3" style="text-align: center; margin-bottom: 30px; color: var(--text-muted);">
+        Быстрое сохранение в базу браузера, резервное копирование и Кузница предметов.
+    </p>
+
+    <!-- Эти кнопки будут скрыты и заменены новым красивым интерфейсом из settingsTab.js -->
+    <button id="quickSaveBtn" style="display:none;"></button>
+    <button id="quickLoadBtn" style="display:none;"></button>
+    <button id="exportFileBtn" style="display:none;"></button>
+    <button id="importFileBtn" style="display:none;"></button>
+    <input type="file" id="fileImportInput" accept=".js,.json" style="display: none;">
+</div>
+
+<div id="saveListModal" class="modal-overlay">
+    <div class="modal-content" style="width: 500px; text-align: left;">
+        <h3 class="font-group-1" style="color: var(--accent-success); margin: 0 0 15px 0; border: none; padding: 0; text-align: center;">
+            Сохранённые персонажи (<span id="savedCountDisplay">0</span>)
+        </h3>
+        <div id="saveListContainer" style="max-height: 300px; overflow-y: auto; width: 100%; margin-bottom: 20px; display: flex; flex-direction: column; gap: 8px;">
+        </div>
+        <button id="closeSaveListBtn" class="settings-btn btn-dark" style="width: 100%;">Закрыть</button>
+    </div>
+</div>

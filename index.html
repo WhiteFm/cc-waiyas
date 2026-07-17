@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Лист Персонажа D&D 5e 2024</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<div class="app-layout">
+    <div class="main-content-column">
+
+        <!-- ОБЪЕДИНЁННЫЙ БЛОК: Хэдер слева, Логотип справа -->
+        <div class="top-panel-wrapper">
+
+            <!-- Хэдер персонажа: Аватар, Имя и Опыт (СЛЕВА) -->
+            <header class="character-header">
+                <!-- Аватар -->
+                <div class="avatar-container" id="avatarContainer" title="Нажмите, чтобы изменить аватар">
+                    <img id="avatarImage" src="" style="width: 100%; height: 100%; object-fit: cover; display: none;">
+                    <span id="avatarPlaceholder" style="color: var(--text-muted); font-size: 32px;">📸</span>
+                    <div id="avatarHoverLayer" style="position: absolute; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; color: white; font-size: 11px; font-weight: bold; opacity: 0; transition: 0.2s;">ИЗМЕНИТЬ</div>
+                    <input type="file" id="avatarInput" accept="image/*" style="display: none;">
+                </div>
+
+                <!-- Имя, Опыт и Уровень -->
+                <div class="header-info-container">
+                    <div id="headerCharName" class="font-group-1">Без имени</div>
+
+                    <div class="header-level-row">
+                        <h2 class="font-group-1" style="margin: 0; border: none; padding: 0; color: var(--accent-yellow);">Уровень <span id="headerLevelDisplay">1</span></h2>
+                        <span id="xpTextDisplay" class="font-group-3">0 / 300 ОП</span>
+                    </div>
+
+                    <!-- Полоса опыта -->
+                    <div class="xp-bar-container">
+                        <div id="xpBarFill"></div>
+                        <div id="xpLevelUpText">Повысьте уровень!</div>
+                    </div>
+
+                    <!-- Кнопки управления ОП -->
+                    <div class="xp-controls">
+                        <input type="number" id="xpChangeInput" class="input-field font-group-3" placeholder="Кол-во...">
+                        <button class="settings-btn btn-green" onclick="window.changeXp(1)">+ Опыт</button>
+                        <button class="settings-btn btn-red" onclick="window.changeXp(-1)">− Опыт</button>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Логотип приложения (СПРАВА/ПО ЦЕНТРУ, БЕЗ ФОНА) -->
+            <img src="icon/mainLogo.png" alt="D&D Logo" class="main-logo-img">
+
+        </div> <!-- /top-panel-wrapper -->
+
+        <nav class="tab-navigation">
+            <button class="tab-btn active" data-tab="htmls/mainUI.html">Основные данные</button>
+            <button class="tab-btn" data-tab="htmls/skillsUI.html">Навыки</button>
+            <button class="tab-btn" data-tab="htmls/backpackUI.html">Снаряжение</button>
+            <button class="tab-btn" data-tab="htmls/magicbookUI.html">Книга заклинаний</button>
+            <button class="tab-btn" data-tab="htmls/settingsUI.html">Настройки</button>
+        </nav>
+
+        <main id="dynamic-tab-content" class="tab-content-container"></main>
+    </div>
+
+    <aside class="independent-side-panel" id="independentSidePanel">
+        <div class="side-panel-widget notes-widget" style="border-left-color: var(--accent-yellow);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                <h2 class="font-group-1" style="margin-bottom: 0; font-size: 16px; border: none; padding: 0;">Заметки</h2>
+                <button id="addNoteBtn" class="backpack-add-btn" title="Создать заметку" style="border-color: var(--accent-yellow); color: var(--accent-yellow);">+</button>
+            </div>
+            <div id="notesListContainer" class="side-panel-widget-content font-group-3">
+                <p class="font-group-3" style="color: var(--text-muted); font-style: italic; text-align: center; margin-top: 15px;">Заметок пока нет</p>
+            </div>
+        </div>
+
+        <div class="side-panel-widget desc-widget">
+            <h2 class="font-group-1" style="margin-bottom: 12px; font-size: 16px;">Описание</h2>
+            <div id="inspectorDescriptionPanel" class="side-panel-widget-content font-group-3" style="text-align: justify;">
+                <p>Наведите мышь на характеристику, навык или предмет, чтобы узнать подробности.</p>
+            </div>
+        </div>
+    </aside>
+</div>
+
+<!-- Модальное окно кадрирования фото -->
+<div id="cropModal" class="modal-overlay">
+    <div class="modal-content" style="width: 400px; text-align: center; max-width: 95%;">
+        <h3 class="font-group-1" style="color: var(--accent-yellow); margin-bottom: 15px; border: none;">Кадрирование</h3>
+        <p class="font-group-3" style="color: var(--text-muted); font-size: 12px; margin-bottom: 15px;">Перетаскивайте фото и используйте ползунок для зума.</p>
+
+        <!-- Размер окна обрезки жестко зафиксирован (box-sizing: content-box) для точной математики -->
+        <div id="cropContainer" style="box-sizing: content-box; width: 250px; height: 250px; margin: 0 auto 15px auto; border: 2px dashed var(--accent-success); border-radius: 12px; position: relative; overflow: hidden; cursor: grab; background: #0a0d14; touch-action: none;">
+            <img id="cropImage" style="position: absolute; top: 0; left: 0; transform-origin: 0 0; pointer-events: none; will-change: transform; max-width: none !important; max-height: none !important; width: auto !important; height: auto !important;">
+        </div>
+
+        <input type="range" id="cropZoom" min="0.1" max="3" step="0.01" value="1" style="width: 250px; margin-bottom: 20px; accent-color: var(--accent-success);">
+
+        <div style="display: flex; gap: 10px; width: 100%;">
+            <button id="cropCancelBtn" class="settings-btn btn-dark" style="flex: 1;">Отмена</button>
+            <button id="cropConfirmBtn" class="settings-btn btn-green" style="flex: 1;">Применить</button>
+        </div>
+    </div>
+</div>
+
+<div id="noteCreateModal" class="modal-overlay">
+    <div class="modal-content" style="width: 440px; text-align: left;">
+        <h3 class="font-group-1" style="color: var(--accent-yellow); margin-top: 0; margin-bottom: 15px; text-align: center; border:none; padding:0;">Новая заметка</h3>
+        <div style="margin-bottom: 12px; width: 100%;">
+            <label class="font-group-2">Название заметки:</label>
+            <input type="text" id="noteTitleInput" class="font-group-3 input-field" placeholder="Например: Секрет гильдии...">
+        </div>
+        <div style="margin-bottom: 20px; width: 100%;">
+            <label class="font-group-2">Описание / текст заметки:</label>
+            <textarea id="noteTextInput" class="font-group-3 input-field" style="height: 120px; resize: vertical;" placeholder="Подробная информация..."></textarea>
+        </div>
+        <div style="display: flex; gap: 10px; width: 100%;">
+            <button id="noteCancelBtn" class="settings-btn btn-dark" style="flex: 1;">Отмена</button>
+            <button id="noteConfirmBtn" class="settings-btn btn-yellow" style="flex: 1;">Сохранить</button>
+        </div>
+    </div>
+</div>
+
+<div id="levelUpModal" class="modal-overlay">
+    <div class="modal-content">
+        <div id="modalTitle" class="font-group-1" style="border: none; padding: 0; text-align: center;">Новый уровень!</div>
+        <div id="modalText" class="font-group-3" style="text-align: center; margin-bottom: 25px; font-size: 16px;"></div>
+        <button id="modalCloseBtn" class="settings-btn btn-green">Отлично</button>
+    </div>
+</div>
+
+<script type="module" src="app.js"></script>
+</body>
+</html>
