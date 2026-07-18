@@ -42,7 +42,6 @@ export function bindRacesEvents() {
             const race = racesData[key];
             if (!race) return;
 
-            // ВСЕГДА открываем модальное окно для подтверждения и чтения описания
             openRaceModal(key, race);
         });
     }
@@ -50,18 +49,15 @@ export function bindRacesEvents() {
     if (modal) {
         document.getElementById("raceModalCancelBtn")?.addEventListener("click", () => {
             modal.classList.remove("visible");
-            // Если игрок отменил выбор, возвращаем селект к текущей выбранной расе
             if (select) select.value = charData.origin.raceKey || "none";
         });
     }
 }
 
-// Откат навыка, который был выбран в прошлой расе (например, у Человека или Эльфа)
 function revertRaceSkillChoice() {
     const oldChoices = charData.origin.raceChoices || {};
     const skillKey = oldChoices.elf_skill || oldChoices.human_skill;
     if (skillKey && charData.skills[skillKey]) {
-        // Убираем владение, только если оно было получено именно расой (т.е. равно 1)
         if (charData.skills[skillKey].state === 1) {
             charData.skills[skillKey].state = 0;
         }
@@ -79,7 +75,6 @@ function openRaceModal(key, race) {
 
     title.innerText = race.name;
 
-    // 1. Сначала генерируем выпадающие списки (селекты)
     let html = "";
     if (race.choices && race.choices.length > 0) {
         race.choices.forEach(ch => {
@@ -88,7 +83,16 @@ function openRaceModal(key, race) {
                     <label class="font-group-2" style="margin-bottom:6px;">${ch.title}</label>
                     <select class="font-group-3 input-field race-choice-sel" data-id="${ch.id}">`;
             ch.options.forEach(opt => {
-                html += `<option value="${opt.value}">${opt.label}</option>`;
+                // ФИКС: Блокировка навыков, которые уже изучены (от класса или предыстории)
+                let disabledStr = "";
+                if (ch.id.includes("skill")) {
+                    const isProf = charData.skills[opt.value]?.state > 0;
+                    const isCurrentRaceChoice = (charData.origin.raceChoices && charData.origin.raceChoices[ch.id] === opt.value);
+                    if (isProf && !isCurrentRaceChoice) {
+                        disabledStr = " disabled";
+                    }
+                }
+                html += `<option value="${opt.value}"${disabledStr}>${opt.label}</option>`;
             });
             html += `</select></div>`;
         });
@@ -97,7 +101,20 @@ function openRaceModal(key, race) {
     }
     container.innerHTML = html;
 
-    // 2. Функция, которая динамически обновляет описание на основе выбранных опций
+    // Автоматический выбор первого доступного навыка, если по умолчанию выбран заблокированный
+    container.querySelectorAll(".race-choice-sel").forEach(sel => {
+        const chId = sel.getAttribute("data-id");
+        if (chId.includes("skill")) {
+            const currentChoice = charData.origin.raceChoices?.[chId];
+            if (currentChoice && !sel.querySelector(`option[value="${currentChoice}"]`)?.disabled) {
+                sel.value = currentChoice;
+            } else if (sel.options[sel.selectedIndex]?.disabled) {
+                const firstAvailable = Array.from(sel.options).find(o => !o.disabled);
+                if (firstAvailable) sel.value = firstAvailable.value;
+            }
+        }
+    });
+
     const updateModalDescription = () => {
         const choicesObj = {};
         container.querySelectorAll(".race-choice-sel").forEach(sel => {
@@ -105,7 +122,6 @@ function openRaceModal(key, race) {
         });
 
         const lvl = charData.origin.level || 1;
-        // Получаем динамические особенности для предпросмотра
         const dynamicFeatures = getDynamicRaceFeatures(key, race, choicesObj, lvl);
 
         let fullDesc = `<p style="margin-bottom: 15px; text-align: justify;">${race.description}</p>`;
@@ -120,12 +136,10 @@ function openRaceModal(key, race) {
         desc.innerHTML = fullDesc;
     };
 
-    // 3. Вешаем слушатели на селекты, чтобы при изменении (например, вида великана) обновлялось описание
     container.querySelectorAll(".race-choice-sel").forEach(sel => {
         sel.addEventListener("change", updateModalDescription);
     });
 
-    // 4. Запускаем обновление описания один раз при открытии, чтобы отрисовать начальный выбор
     updateModalDescription();
 
     modal.classList.add("visible");
@@ -133,7 +147,6 @@ function openRaceModal(key, race) {
     confirmBtn.replaceWith(newConfirm);
 
     newConfirm.onclick = () => {
-        // Сначала откатываем навык старой расы, если он был
         revertRaceSkillChoice();
 
         const choicesObj = {};
@@ -174,7 +187,6 @@ export function applyRaceBonuses() {
     const dynamicFeatures = getDynamicRaceFeatures(key, race, charData.origin.raceChoices || {}, lvl);
     let passiveHtml = "";
 
-    // Отрисовываем пассивные особенности в первой вкладке под расой
     dynamicFeatures.forEach(feat => {
         if (feat.type !== "active") {
             const safeDesc = feat.description.replace(/"/g, '&quot;');
@@ -189,22 +201,19 @@ export function applyRaceBonuses() {
 
     if (passiveBox) passiveBox.innerHTML = passiveHtml || `<p class="font-group-3" style="color: var(--text-muted); font-style: italic;">Нет пассивных особенностей</p>`;
 
-    // --- Обработка врождённых заклинаний от расы ---
     if (!charData.magic) charData.magic = { known: [], prepared: [], innateSpells: [] };
     if (!charData.magic.innateSpells) charData.magic.innateSpells = [];
 
-    // Очищаем старые врождённые заклинания
     charData.magic.known = charData.magic.known.filter(sp => !charData.magic.innateSpells.includes(sp));
     charData.magic.prepared = charData.magic.prepared.filter(sp => !charData.magic.innateSpells.includes(sp));
     charData.magic.innateSpells = [];
 
-    // Словарь заклинаний по уровням для рас
     const raceSpells = {
         aasimar: { 1: ["light"] },
         gnome_forest: { 1: ["minor_illusion", "speak_with_animals"] },
         gnome_rock: { 1: ["mending", "prestidigitation"] },
         elf_drow: { 1: ["dancing_lights"], 3: ["faerie_fire"], 5: ["darkness"] },
-        elf_high: { 1: ["prestidigitation"], 3: ["detect_magic"], 5: ["misty_step"] }, // prestidigitation используется как база
+        elf_high: { 1: ["prestidigitation"], 3: ["detect_magic"], 5: ["misty_step"] },
         elf_wood: { 1: ["druidcraft"], 3: ["longstrider"], 5: ["pass_without_trace"] },
         tiefling_infernal: { 1: ["fire_bolt", "thaumaturgy"], 3: ["hellish_rebuke"], 5: ["darkness"] },
         tiefling_abyssal: { 1: ["poison_spray", "thaumaturgy"], 3: ["ray_of_sickness"], 5: ["hold_person"] },
