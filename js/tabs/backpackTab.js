@@ -419,9 +419,40 @@ function renderEquippedSlots() {
                     else if (charData.proficiencies.weapon.martial === 1 && (item.properties.includes("Лёгкое") || item.properties.includes("Фехтовальное"))) isProf = true;
                 }
 
-                const pb = charData.origin.pb || 2; const atkMod = statMod + (isProf ? pb : 0); const atkStr = atkMod >= 0 ? `+${atkMod}` : `${atkMod}`;
+                const pb = charData.origin.pb || 2;
+                let atkMod = statMod + (isProf ? pb : 0);
                 let dmgMod = statMod;
-                if (slot.includes("off")) { const hasDualWielding = charData.selectedFeats && charData.selectedFeats["fs_two_weapon"]; if (!hasDualWielding && dmgMod > 0) dmgMod = 0; }
+
+                // === ПРИМЕНЕНИЕ БОЕВЫХ СТИЛЕЙ К ОРУЖИЮ ===
+                if (slot.includes("off")) {
+                    const hasDualWielding = charData.selectedFeats && charData.selectedFeats["fs_two_weapon"];
+                    if (!hasDualWielding && dmgMod > 0) dmgMod = 0;
+                }
+
+                if (charData.selectedFeats) {
+                    if (charData.selectedFeats["fs_archery"] && item.category?.includes("дальнобойное")) {
+                        atkMod += 2;
+                    }
+                    if (charData.selectedFeats["fs_thrown"] && item.properties?.includes("Метательное")) {
+                        dmgMod += 2;
+                    }
+                    if (charData.selectedFeats["fs_dueling"] && item.category?.includes("рукопашное")) {
+                        const isMain = slot.includes("_main");
+                        const partnerSlot = isMain ? slot.replace("_main", "_off") : slot.replace("_off", "_main");
+                        const partnerWeaponObj = eq.weapons.find(w => w.equipSlot === partnerSlot);
+
+                        let partnerIsWeapon = false;
+                        if (partnerWeaponObj) {
+                            const partnerDbItem = ALL_ITEMS_MAP[partnerWeaponObj.key];
+                            if (partnerDbItem && !partnerDbItem.category?.includes("Щит") && !partnerDbItem.type?.includes("Щит")) {
+                                partnerIsWeapon = true;
+                            }
+                        }
+                        if (!partnerIsWeapon) dmgMod += 2;
+                    }
+                }
+
+                const atkStr = atkMod >= 0 ? `+${atkMod}` : `${atkMod}`;
                 const dmgStr = dmgMod !== 0 ? (dmgMod > 0 ? `+${dmgMod}` : `${dmgMod}`) : "";
                 extraHtml = `<div style="display:flex; justify-content:center; gap:8px; margin-top:2px;"><span style="font-size: 11px; color: var(--accent-success); font-weight:bold;" title="Бонус атаки">⚔️ Атака: ${atkStr}</span><span style="font-size: 11px; color: var(--accent-yellow); font-weight:bold;" title="Урон">🩸 Урон: ${item.damage}${dmgStr}</span></div>`;
             }
