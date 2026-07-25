@@ -192,8 +192,8 @@ export function syncAllSkillsUI() {
     document.querySelectorAll('#damageResistancesContainer .status-badge-btn').forEach(btn => {
         const key = btn.getAttribute('data-key');
         if (key) {
-            btn.classList.toggle('active-res', !!charData.combat.resistances[key]);
-            btn.classList.toggle('active-vuln', !!charData.combat.vulnerabilities[key]);
+            btn.classList.toggle('active-res', !!charData.combat.resistances[key] || !!charData.combat.equipmentResistances?.[key]);
+            btn.classList.toggle('active-vuln', !!charData.combat.vulnerabilities[key] || !!charData.combat.equipmentVulnerabilities?.[key]);
         }
     });
     document.querySelectorAll('#conditionsContainer .status-badge-btn').forEach(btn => btn.classList.toggle('active-cond', !!charData.combat.conditions[btn.getAttribute('data-key')]));

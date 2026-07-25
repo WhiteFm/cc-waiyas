@@ -46,6 +46,13 @@ export function collectEquipmentEffects(charData) {
         statMinimums: {},
         statCaps: {},
         skills: {},
+        saves: {},
+        initiative: 0,
+        spellSlots: {},
+        preparedSpells: 0,
+        preparedCantrips: 0,
+        resistances: [],
+        vulnerabilities: [],
         ac: 0,
         baseAc: null,
         baseAcAddsDex: false,
@@ -79,6 +86,21 @@ export function collectEquipmentEffects(charData) {
         });
         Object.entries(effects.skills || {}).forEach(([key, value]) => {
             totals.skills[key] = (totals.skills[key] || 0) + (Number(value) || 0);
+        });
+        Object.entries(effects.saves || {}).forEach(([key, value]) => {
+            totals.saves[key] = (totals.saves[key] || 0) + (Number(value) || 0);
+        });
+        totals.initiative += Number(effects.initiative) || 0;
+        Object.entries(effects.spellSlots || {}).forEach(([level, value]) => {
+            totals.spellSlots[level] = (totals.spellSlots[level] || 0) + (Number(value) || 0);
+        });
+        totals.preparedSpells += Number(effects.preparedSpells) || 0;
+        totals.preparedCantrips += Number(effects.preparedCantrips) || 0;
+        (effects.resistances || []).forEach(key => {
+            if (!totals.resistances.includes(key)) totals.resistances.push(key);
+        });
+        (effects.vulnerabilities || []).forEach(key => {
+            if (!totals.vulnerabilities.includes(key)) totals.vulnerabilities.push(key);
         });
         if (effects.allSkills) totals.allSkills = (totals.allSkills || 0) + Number(effects.allSkills);
         totals.ac += Number(effects.ac) || 0;

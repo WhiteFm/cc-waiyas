@@ -4,6 +4,7 @@
 
 import { charData } from '../../saves/tempSave.js';
 import { spellsData } from '../data/magicbookData.js';
+import { collectEquipmentEffects } from './equipmentEffects.js';
 
 const CLASS_SPELL_STATS = {
     bard: "cha", cleric: "wis", druid: "wis", paladin: "cha",
@@ -126,8 +127,9 @@ export function getAvailableSpellSlots() {
     const classKey = charData.origin?.classKey || "none";
     const level = charData.origin?.level || 1;
 
-    if (["wizard", "cleric", "druid", "bard", "sorcerer"].includes(classKey)) return FULL_CASTER_SLOTS[level] || [];
-    if (["paladin", "ranger"].includes(classKey)) return HALF_CASTER_SLOTS[level] || [];
+    let slots = [];
+    if (["wizard", "cleric", "druid", "bard", "sorcerer"].includes(classKey)) slots = [...(FULL_CASTER_SLOTS[level] || [])];
+    else if (["paladin", "ranger"].includes(classKey)) slots = [...(HALF_CASTER_SLOTS[level] || [])];
     if (classKey === "warlock") {
         let count = 1; let slotLvl = 1;
         if (level >= 2) count = 2;
@@ -136,9 +138,17 @@ export function getAvailableSpellSlots() {
         slotLvl = Math.min(5, Math.ceil(level / 2));
         const arr = [0,0,0,0,0,0,0,0,0];
         arr[slotLvl - 1] = count;
-        return arr;
+        slots = arr;
     }
-    return [];
+    const equipmentSlots = collectEquipmentEffects(charData).spellSlots;
+    Object.entries(equipmentSlots).forEach(([spellLevel, count]) => {
+        const index = Number(spellLevel) - 1;
+        if (index >= 0 && index < 9) {
+            while (slots.length <= index) slots.push(0);
+            slots[index] = Math.max(0, (slots[index] || 0) + Number(count));
+        }
+    });
+    return slots;
 }
 
 export function getSpellLimits() {
@@ -159,13 +169,24 @@ export function getSpellLimits() {
     else if (classKey === "sorcerer") maxPrepared = SORCERER_KNOWN[level] || 2;
 
     const alwaysPrepared = getAlwaysPreparedSpells();
+    const equipmentMagicEffects = collectEquipmentEffects(charData);
+    const equipmentPreparedBonus = equipmentMagicEffects.preparedSpells;
+    const equipmentCantripBonus = equipmentMagicEffects.preparedCantrips;
     const bonusCantrips = alwaysPrepared.filter(key => spellsData[key]?.level === 0).length;
     const bonusSpells = alwaysPrepared.filter(key => spellsData[key]?.level > 0).length;
     const currentCantrips = charData.magic.known.filter(key => spellsData[key]?.level === 0).length;
     const currentSpells = charData.magic.prepared.filter(key => spellsData[key]?.level > 0).length;
 
     return {
-        cantrips: { current: currentCantrips, max: maxCantrips + bonusCantrips, bonus: bonusCantrips },
-        spells: { current: currentSpells, max: maxPrepared + bonusSpells, bonus: bonusSpells }
+        cantrips: {
+            current: currentCantrips,
+            max: Math.max(0, maxCantrips + bonusCantrips + equipmentCantripBonus),
+            bonus: bonusCantrips + equipmentCantripBonus
+        },
+        spells: {
+            current: currentSpells,
+            max: Math.max(0, maxPrepared + bonusSpells + equipmentPreparedBonus),
+            bonus: bonusSpells + equipmentPreparedBonus
+        }
     };
 }

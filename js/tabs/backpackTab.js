@@ -429,7 +429,7 @@ function renderEquippedSlots() {
                 }
 
                 const pb = charData.origin?.pb || 2;
-                let atkMod = statMod + (isProf ? pb : 0);
+                let atkMod = statMod + (isProf ? pb : 0) + (Number(item.attackBonus) || 0);
                 let dmgMod = statMod;
 
                 // === ПРИМЕНЕНИЕ БОЕВЫХ СТИЛЕЙ К ОРУЖИЮ ===

@@ -264,7 +264,7 @@ export function recalculateStats() {
         if (equipmentEffects.statCaps[key]) statObj.val = Math.min(statObj.val, equipmentEffects.statCaps[key]);
         statObj.val = Math.max(statObj.val, equipmentEffects.statMinimums[key] || 0);
         statObj.mod = Math.floor((statObj.val - 10) / 2);
-        statObj.saveMod = statObj.mod + (statObj.saveProf ? charData.origin.pb : 0);
+        statObj.saveMod = statObj.mod + (statObj.saveProf ? charData.origin.pb : 0) + (equipmentEffects.saves[key] || 0);
 
         if (statObj.base > 8) {
             totalPointBuyCost += statObj.base <= 15 ? (POINT_BUY_COSTS[statObj.base] || 0) : (9 + (statObj.base - 15) * 2);
@@ -397,11 +397,13 @@ export function recalculateStats() {
     const hasFly = (charData.origin.raceKey === "dragonborn" && level >= 5) || (charData.origin.raceKey === "aasimar" && level >= 3);
     charData.combat.flySpeed = hasFly ? charData.combat.speed : 0;
 
-    charData.combat.initiative = baseInitiative + (charData.bonuses?.initiative || 0);
+    charData.combat.initiative = baseInitiative + (charData.bonuses?.initiative || 0) + equipmentEffects.initiative;
     charData.combat.passivePerception = 10 + charData.skills.perception.mod;
     charData.combat.stealthDisadvantage = hasStealthDisadv;
     charData.combat.ac = baseAc + (charData.bonuses?.ac || 0) + equipmentEffects.ac;
     charData.combat.retaliationDamage = equipmentEffects.retaliationDamage;
+    charData.combat.equipmentResistances = Object.fromEntries(equipmentEffects.resistances.map(key => [key, true]));
+    charData.combat.equipmentVulnerabilities = Object.fromEntries(equipmentEffects.vulnerabilities.map(key => [key, true]));
 
     window.charData = charData;
     return totalPointBuyCost;

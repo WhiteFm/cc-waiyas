@@ -96,8 +96,8 @@ export function initCombatStatusUI() {
         let resHtml = "";
         Object.keys(damageTypesData).forEach(key => {
             const dmg = damageTypesData[key];
-            const isRes = charData.combat.resistances[key] || false;
-            const isVuln = charData.combat.vulnerabilities[key] || false;
+            const isRes = charData.combat.resistances[key] || charData.combat.equipmentResistances?.[key] || false;
+            const isVuln = charData.combat.vulnerabilities[key] || charData.combat.equipmentVulnerabilities?.[key] || false;
             const safeDesc = dmg.desc.replace(/"/g, '&quot;');
             let activeClass = "";
             if (isRes) activeClass = "active-res";
