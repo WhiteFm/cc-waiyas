@@ -406,9 +406,14 @@ function renderEquippedSlots() {
             const item = ALL_ITEMS_MAP[itemObj.key] || { name: itemObj.key, description: "Описание предмета не найдено." }; let extraHtml = "";
             if (item.damage) {
                 let statKey = item.scalingAbility;
+                if (statKey === "finesse") {
+                    const strMod = charData.stats.str?.mod || 0;
+                    const dexMod = charData.stats.dex?.mod || 0;
+                    statKey = dexMod > strMod ? "dex" : "str";
+                }
                 if (!["str", "dex", "con", "int", "wis", "cha"].includes(statKey)) {
                     statKey = "str";
-                    if (item.properties?.includes("Фехтовальное")) statKey = (charData.stats.dex?.val || 0) > (charData.stats.str?.val || 0) ? "dex" : "str";
+                    if (item.properties?.includes("Фехтовальное")) statKey = (charData.stats.dex?.mod || 0) > (charData.stats.str?.mod || 0) ? "dex" : "str";
                     else if (item.category?.includes("дальнобойное")) statKey = "dex";
                 }
 

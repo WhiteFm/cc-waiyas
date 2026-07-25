@@ -184,6 +184,53 @@ export const weaponsData = {
     }
 };
 
+// Явная характеристика атаки для каждого штатного оружия.
+// finesse означает использование большего модификатора Силы или Ловкости.
+const weaponScalingAbilities = {
+    quarterstaff: "str",
+    mace: "str",
+    club: "str",
+    dagger: "finesse",
+    spear: "str",
+    light_hammer: "str",
+    javelin: "str",
+    handaxe: "str",
+    greatclub: "str",
+    sickle: "str",
+    dart: "finesse",
+    shortbow: "dex",
+    light_crossbow: "dex",
+    sling: "dex",
+    halberd: "str",
+    warhammer: "str",
+    battleaxe: "str",
+    glaive: "str",
+    greatsword: "str",
+    longsword: "str",
+    lance: "str",
+    war_pick: "str",
+    whip: "finesse",
+    shortsword: "finesse",
+    maul: "str",
+    morningstar: "str",
+    pike: "str",
+    rapier: "finesse",
+    greataxe: "str",
+    scimitar: "finesse",
+    trident: "str",
+    flail: "str",
+    longbow: "dex",
+    blowgun: "dex",
+    musket: "dex",
+    hand_crossbow: "dex",
+    pistol: "dex",
+    heavy_crossbow: "dex"
+};
+
+Object.entries(weaponScalingAbilities).forEach(([key, scalingAbility]) => {
+    weaponsData[key].scalingAbility = scalingAbility;
+});
+
 /**
  * Вспомогательная функция для генерации красивой HTML-таблицы описания оружия
  */

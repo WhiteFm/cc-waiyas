@@ -162,6 +162,7 @@ function renderForgeUI() {
                         <label class="font-group-3" style="color: var(--text-muted); font-size: 11px;">Скейл от характеристики:</label>
                         <select id="forgeScalingAbility" class="input-field font-group-3">
                             <option value="auto">Автоматически</option>
+                            <option value="finesse">СИЛ или ЛОВ (большая)</option>
                             <option value="str">Сила</option>
                             <option value="dex">Ловкость</option>
                             <option value="con">Телосложение</option>
@@ -236,7 +237,7 @@ function attachForgeListeners() {
 
         let htmlDesc = `<table style='width:100%; text-align:left; border-collapse:collapse; margin-bottom:8px; font-size:13px;'>`;
         if (damage) {
-            const abilityNames = { auto: "автоматически", str: "Сила", dex: "Ловкость", con: "Телосложение", int: "Интеллект", wis: "Мудрость", cha: "Харизма" };
+            const abilityNames = { auto: "автоматически", finesse: "СИЛ или ЛОВ (большая)", str: "Сила", dex: "Ловкость", con: "Телосложение", int: "Интеллект", wis: "Мудрость", cha: "Харизма" };
             htmlDesc += `<tr style='border-bottom:1px solid var(--border-color);'><td style='color:var(--accent-success); padding:6px;'>Урон:</td><td style='padding:6px;'><b>${damage} (${damageType})</b><br><small>Скейл: ${abilityNames[scalingAbility]}</small></td></tr>`;
         }
         if (properties) htmlDesc += `<tr style='border-bottom:1px solid var(--border-color);'><td style='color:var(--text-muted); padding:6px;'>Свойства:</td><td style='padding:6px;'>${properties}</td></tr>`;
