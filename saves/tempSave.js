@@ -65,7 +65,7 @@ export const charData = {
     },
 
     selectedFeats: {}, notes: [],
-    magic: { known: [], prepared: [], slotsUsed: {}, sorceryPoints: 0, secondaryStatKey: "none" },
+    magic: { known: [], prepared: [], innateSpells: [], alwaysPrepared: [], autoGrantedSpells: [], manualSpells: [], slotsUsed: {}, sorceryPoints: 0, secondaryStatKey: "none" },
     inventory: {
         currency: { cp: 0, sp: 0, ep: 0, gp: 0, pp: 0 },
         equipped: { head: null, armor: null, cloak: null, amulet: null, bracers: null, belt: null, boots: null, rings: [], weapons: [] },

@@ -43,7 +43,57 @@ export function ensureMagicBookStructure() {
     }
     if (!charData.magic.known) charData.magic.known = [];
     if (!charData.magic.prepared) charData.magic.prepared = [];
+    if (!charData.magic.innateSpells) charData.magic.innateSpells = [];
+    if (!charData.magic.alwaysPrepared) charData.magic.alwaysPrepared = [];
+    if (!charData.magic.autoGrantedSpells) charData.magic.autoGrantedSpells = [];
+    if (!charData.magic.manualSpells) {
+        charData.magic.manualSpells = charData.magic.known.filter(key => !charData.magic.autoGrantedSpells.includes(key));
+    }
     if (!charData.magic.slotsUsed) charData.magic.slotsUsed = {};
+
+    const alwaysPrepared = getAlwaysPreparedSpells();
+    const removedGrants = charData.magic.autoGrantedSpells.filter(key => !alwaysPrepared.includes(key));
+    removedGrants.forEach(key => {
+        if (!charData.magic.manualSpells.includes(key)) {
+            charData.magic.known = charData.magic.known.filter(spellKey => spellKey !== key);
+            charData.magic.prepared = charData.magic.prepared.filter(spellKey => spellKey !== key);
+        }
+    });
+    alwaysPrepared.forEach(key => {
+        if (!charData.magic.known.includes(key)) charData.magic.known.push(key);
+        if (!charData.magic.prepared.includes(key)) charData.magic.prepared.push(key);
+    });
+    charData.magic.autoGrantedSpells = [...alwaysPrepared];
+    charData.magic.known = [...new Set(charData.magic.known)];
+    charData.magic.prepared = [...new Set(charData.magic.prepared)];
+    charData.magic.manualSpells = [...new Set(charData.magic.manualSpells)];
+}
+
+export function getAlwaysPreparedSpells() {
+    const magic = charData.magic || {};
+    const selectedFeats = charData.selectedFeats || {};
+    const classKey = charData.origin?.classKey || "none";
+    const level = charData.origin?.level || 1;
+    const featGrantedSpells = [];
+    if (selectedFeats.shadow_touched) featGrantedSpells.push("invisibility");
+    if (selectedFeats.fey_touched) featGrantedSpells.push("misty_step");
+    if (selectedFeats.telepathic) featGrantedSpells.push("detect_thoughts");
+    if (selectedFeats.telekinetic) featGrantedSpells.push("mage_hand");
+
+    const classGrantedSpells = [];
+    if (classKey === "druid") classGrantedSpells.push("speak_with_animals");
+    if (classKey === "paladin") {
+        classGrantedSpells.push("divine_smite");
+        if (level >= 5) classGrantedSpells.push("find_steed");
+    }
+    if (classKey === "ranger") classGrantedSpells.push("hunters_mark");
+
+    return [...new Set([
+        ...(magic.innateSpells || []),
+        ...(magic.alwaysPrepared || []),
+        ...featGrantedSpells,
+        ...classGrantedSpells
+    ])].filter(key => spellsData[key]);
 }
 
 export function calculateSpellcastingMetrics(statKey) {
@@ -92,6 +142,7 @@ export function getAvailableSpellSlots() {
 }
 
 export function getSpellLimits() {
+    ensureMagicBookStructure();
     const classKey = charData.origin?.classKey || "none";
     const level = charData.origin?.level || 1;
 
@@ -107,12 +158,14 @@ export function getSpellLimits() {
     else if (classKey === "warlock") maxPrepared = WARLOCK_KNOWN[level] || 2;
     else if (classKey === "sorcerer") maxPrepared = SORCERER_KNOWN[level] || 2;
 
-    const innate = charData.magic?.innateSpells || [];
-    const currentCantrips = charData.magic?.known.filter(k => spellsData[k]?.level === 0 && !innate.includes(k)).length || 0;
-    const currentSpells = charData.magic?.prepared.filter(k => !innate.includes(k)).length || 0;
+    const alwaysPrepared = getAlwaysPreparedSpells();
+    const bonusCantrips = alwaysPrepared.filter(key => spellsData[key]?.level === 0).length;
+    const bonusSpells = alwaysPrepared.filter(key => spellsData[key]?.level > 0).length;
+    const currentCantrips = charData.magic.known.filter(key => spellsData[key]?.level === 0).length;
+    const currentSpells = charData.magic.prepared.filter(key => spellsData[key]?.level > 0).length;
 
     return {
-        cantrips: { current: currentCantrips, max: maxCantrips },
-        spells: { current: currentSpells, max: maxPrepared }
+        cantrips: { current: currentCantrips, max: maxCantrips + bonusCantrips, bonus: bonusCantrips },
+        spells: { current: currentSpells, max: maxPrepared + bonusSpells, bonus: bonusSpells }
     };
 }

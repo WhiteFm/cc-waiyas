@@ -24,6 +24,39 @@ import { potionsData } from '../data/equipments/potionsData.js';
 import { ringsData } from '../data/equipments/ringsData.js';
 import { substancesData } from '../data/equipments/substancesData.js';
 import { weaponsData } from '../data/equipments/weaponsData.js';
+import { damageTypesData } from '../scripts/combatStatusScript.js';
+
+const STAT_NAMES = { str: "Сила", dex: "Ловкость", con: "Телосложение", int: "Интеллект", wis: "Мудрость", cha: "Харизма" };
+const SKILL_NAMES = {
+    acrobatics: "Акробатика", animal_handling: "Уход за животными", arcana: "Тайная магия",
+    athletics: "Атлетика", deception: "Обман", history: "История", insight: "Проницательность",
+    intimidation: "Запугивание", investigation: "Анализ", medicine: "Медицина", nature: "Природа",
+    perception: "Восприятие", performance: "Выступление", persuasion: "Убеждение",
+    religion: "Религия", sleight_of_hand: "Ловкость рук", stealth: "Скрытность", survival: "Выживание"
+};
+const selectOptions = (items, emptyLabel = "Не выбрано") =>
+    `<option value="">${emptyLabel}</option>` +
+    Object.entries(items).map(([value, label]) => `<option value="${value}">${label}</option>`).join("");
+const DAMAGE_TYPE_OPTIONS = `<option value="">Без типа</option>` +
+    Object.values(damageTypesData).map(damage => `<option value="${damage.name}">${damage.icon} ${damage.name}</option>`).join("");
+const CATEGORY_OPTIONS = [
+    "Снаряжение", "Боеприпасы", "Зелье", "Яд", "Эликсир", "Масло", "Вещество", "Наркотик",
+    "Простое рукопашное оружие", "Простое дальнобойное оружие",
+    "Воинское рукопашное оружие", "Воинское дальнобойное оружие",
+    "Лёгкий доспех", "Средний доспех", "Тяжёлый доспех", "Щит",
+    "Шлем", "Плащ", "Амулет", "Наручи", "Пояс", "Поножи", "Кольцо",
+    "Контейнеры", "Инструмент", "Другие инструменты", "Музыкальные инструменты",
+    "Игровые наборы", "Инструменты ремесленников", "Магические инструменты"
+];
+const TYPE_OPTIONS = [
+    "Снаряжение", "Оружие", "Доспех", "Щит", "Шлем", "Плащ", "Амулет", "Наручи",
+    "Пояс", "Поножи", "Кольцо", "Боеприпас", "Зелье", "Яд", "Инструмент"
+];
+const optionList = values => values.map(value => `<option value="${value}">${value}</option>`).join("");
+const templateValues = field => [...new Set([
+    ...(field === "category" ? CATEGORY_OPTIONS : TYPE_OPTIONS),
+    ...Object.values(ALL_TEMPLATES).map(item => item[field]).filter(Boolean)
+])];
 
 const ALL_TEMPLATES = {
     ...ammoData, ...amuletsData, ...armorsData, ...beltsData, ...bracersData,
@@ -146,8 +179,8 @@ function renderForgeUI() {
                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px;">
                     <div><label class="font-group-3" style="color: var(--text-muted); font-size: 11px;">Ключ (ID - англ.):</label><input type="text" id="forgeKey" class="input-field font-group-3" placeholder="custom_sword_1"></div>
                     <div><label class="font-group-3" style="color: var(--text-muted); font-size: 11px;">Название:</label><input type="text" id="forgeName" class="input-field font-group-3"></div>
-                    <div><label class="font-group-3" style="color: var(--text-muted); font-size: 11px;">Категория:</label><input type="text" list="forgeCategoryOptions" id="forgeCategory" class="input-field font-group-3" placeholder="Выберите или введите"><datalist id="forgeCategoryOptions"><option value="Простое рукопашное оружие"><option value="Простое дальнобойное оружие"><option value="Воинское рукопашное оружие"><option value="Воинское дальнобойное оружие"><option value="Лёгкий доспех"><option value="Средний доспех"><option value="Тяжёлый доспех"><option value="Щит"><option value="Снаряжение"></datalist></div>
-                    <div><label class="font-group-3" style="color: var(--text-muted); font-size: 11px;">Тип / слот:</label><input type="text" list="forgeTypeOptions" id="forgeType" class="input-field font-group-3" placeholder="Выберите или введите"><datalist id="forgeTypeOptions"><option value="Оружие"><option value="Доспех"><option value="Щит"><option value="Шлем"><option value="Плащ"><option value="Амулет"><option value="Наручи"><option value="Пояс"><option value="Поножи"><option value="Кольцо"><option value="Снаряжение"></datalist></div>
+                    <div><label class="font-group-3" style="color: var(--text-muted); font-size: 11px;">Категория:</label><select id="forgeCategory" class="input-field font-group-3">${optionList(templateValues("category"))}</select></div>
+                    <div><label class="font-group-3" style="color: var(--text-muted); font-size: 11px;">Тип / слот:</label><select id="forgeType" class="input-field font-group-3">${optionList(templateValues("type"))}</select></div>
                     <div><label class="font-group-3" style="color: var(--text-muted); font-size: 11px;">Цена:</label><input type="text" id="forgeCost" class="input-field font-group-3" placeholder="10 ЗМ"></div>
                     <div><label class="font-group-3" style="color: var(--text-muted); font-size: 11px;">Вес (фнт):</label><input type="number" step="0.1" id="forgeWeight" class="input-field font-group-3" placeholder="2.0"></div>
                 </div>
@@ -156,7 +189,7 @@ function renderForgeUI() {
                     <div style="font-weight:bold; color:var(--accent); margin-bottom:10px; font-size:14px;">⚔️ Данные оружия</div>
                     <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(130px,1fr)); gap:10px;">
                     <div><label class="font-group-3" style="color: var(--text-muted); font-size: 11px;">Урон:</label><input type="text" id="forgeDamage" class="input-field font-group-3" placeholder="1к8"></div>
-                    <div><label class="font-group-3" style="color: var(--text-muted); font-size: 11px;">Тип урона:</label><input type="text" id="forgeDamageType" class="input-field font-group-3" placeholder="Рубящий"></div>
+                    <div><label class="font-group-3" style="color: var(--text-muted); font-size: 11px;">Тип урона:</label><select id="forgeDamageType" class="input-field font-group-3">${DAMAGE_TYPE_OPTIONS}</select></div>
                     <div>
                         <label class="font-group-3" style="color: var(--text-muted); font-size: 11px;">Скейл от характеристики:</label>
                         <select id="forgeScalingAbility" class="input-field font-group-3">
@@ -184,18 +217,18 @@ function renderForgeUI() {
 
                 <div style="margin-top:12px; padding:14px; border:1px solid rgba(34,197,94,.35); border-radius:9px; background:rgba(34,197,94,.04);">
                     <div style="font-weight:bold; color:var(--accent-success); margin-bottom:10px; font-size:14px;">✨ Эффекты при надевании</div>
-                    <div style="display:grid; grid-template-columns:2fr 1fr; gap:10px; margin-bottom:10px;">
-                        <div><label class="font-group-3" style="color:var(--text-muted);font-size:11px;">Характеристика:</label><select id="forgeStatTarget" class="input-field font-group-3"><option value="">Не изменять</option><option value="str">Сила</option><option value="dex">Ловкость</option><option value="con">Телосложение</option><option value="int">Интеллект</option><option value="wis">Мудрость</option><option value="cha">Харизма</option></select></div>
-                        <div><label class="font-group-3" style="color:var(--text-muted);font-size:11px;">Бонус:</label><input type="number" id="forgeStatBonus" class="input-field font-group-3" value="0" placeholder="+2 / -1"></div>
-                        <div><label class="font-group-3" style="color:var(--text-muted);font-size:11px;">Навык:</label><select id="forgeSkillTarget" class="input-field font-group-3"><option value="">Не изменять</option><option value="acrobatics">Акробатика</option><option value="animal_handling">Уход за животными</option><option value="arcana">Тайная магия</option><option value="athletics">Атлетика</option><option value="deception">Обман</option><option value="history">История</option><option value="insight">Проницательность</option><option value="intimidation">Запугивание</option><option value="investigation">Анализ</option><option value="medicine">Медицина</option><option value="nature">Природа</option><option value="perception">Восприятие</option><option value="performance">Выступление</option><option value="persuasion">Убеждение</option><option value="religion">Религия</option><option value="sleight_of_hand">Ловкость рук</option><option value="stealth">Скрытность</option><option value="survival">Выживание</option></select></div>
-                        <div><label class="font-group-3" style="color:var(--text-muted);font-size:11px;">Бонус:</label><input type="number" id="forgeSkillBonus" class="input-field font-group-3" value="0" placeholder="+2 / -1"></div>
-                        <div><label class="font-group-3" style="color:var(--text-muted);font-size:11px;">Бонус к КЗ:</label><input type="number" id="forgeAcBonus" class="input-field font-group-3" value="0" placeholder="+1 / -1"></div>
-                    </div>
+                    <label class="font-group-3" style="color:var(--text-muted);font-size:11px;">Характеристики:</label>
+                    <div id="forgeStatEffectsContainer"></div>
+                    <button type="button" class="settings-btn btn-dark" id="forgeAddStatEffectBtn" style="margin:6px 0 12px;">＋ Добавить характеристику</button>
+                    <label class="font-group-3" style="color:var(--text-muted);font-size:11px;">Навыки:</label>
+                    <div id="forgeSkillEffectsContainer"></div>
+                    <button type="button" class="settings-btn btn-dark" id="forgeAddSkillEffectBtn" style="margin:6px 0 12px;">＋ Добавить навык</button>
+                    <div style="max-width:240px;"><label class="font-group-3" style="color:var(--text-muted);font-size:11px;">Бонус к КЗ:</label><input type="number" id="forgeAcBonus" class="input-field font-group-3" value="0" placeholder="+1 / -1"></div>
 
                     <div style="font-weight:bold;color:var(--accent-yellow);font-size:12px;margin:8px 0;">Ответный урон при попадании по владельцу</div>
                     <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
                         <div><label class="font-group-3" style="color:var(--text-muted);font-size:11px;">Урон:</label><input type="text" id="forgeRetaliationDice" class="input-field font-group-3" placeholder="2к4"></div>
-                        <div><label class="font-group-3" style="color:var(--text-muted);font-size:11px;">Тип урона:</label><input type="text" id="forgeRetaliationType" class="input-field font-group-3" placeholder="Холод"></div>
+                        <div><label class="font-group-3" style="color:var(--text-muted);font-size:11px;">Тип урона:</label><select id="forgeRetaliationType" class="input-field font-group-3">${DAMAGE_TYPE_OPTIONS}</select></div>
                     </div>
                 </div>
 
@@ -226,6 +259,48 @@ function attachForgeListeners() {
     const searchInput = document.getElementById("forgeSearchInput");
     const searchResults = document.getElementById("forgeSearchResults");
 
+    function createEffectRow(kind, target = "", bonus = 0) {
+        const names = kind === "stat" ? STAT_NAMES : SKILL_NAMES;
+        const row = document.createElement("div");
+        row.className = "forge-effect-row";
+        row.dataset.kind = kind;
+        row.style.cssText = "display:grid;grid-template-columns:minmax(150px,2fr) minmax(80px,1fr) 40px;gap:8px;margin-bottom:6px;align-items:center;";
+        row.innerHTML = `
+            <select class="input-field font-group-3 forge-effect-target">${selectOptions(names, "Не изменять")}</select>
+            <input type="number" class="input-field font-group-3 forge-effect-bonus" value="${Number(bonus) || 0}" placeholder="+2 / -1">
+            <button type="button" class="settings-btn btn-dark forge-remove-effect" title="Удалить" style="padding:8px;">×</button>`;
+        row.querySelector(".forge-effect-target").value = target;
+        return row;
+    }
+
+    function renderEffectRows(kind, entries = []) {
+        const container = document.getElementById(kind === "stat" ? "forgeStatEffectsContainer" : "forgeSkillEffectsContainer");
+        if (!container) return;
+        container.innerHTML = "";
+        const rows = entries.length ? entries : [["", 0]];
+        rows.forEach(([target, bonus]) => container.appendChild(createEffectRow(kind, target, bonus)));
+    }
+
+    function collectEffectRows(kind) {
+        const container = document.getElementById(kind === "stat" ? "forgeStatEffectsContainer" : "forgeSkillEffectsContainer");
+        const effects = {};
+        container?.querySelectorAll(".forge-effect-row").forEach(row => {
+            const target = row.querySelector(".forge-effect-target").value;
+            const bonus = parseInt(row.querySelector(".forge-effect-bonus").value, 10) || 0;
+            if (target && bonus) effects[target] = (effects[target] || 0) + bonus;
+        });
+        return effects;
+    }
+
+    function setSelectValue(id, value) {
+        const select = document.getElementById(id);
+        if (!select) return;
+        if (value && ![...select.options].some(option => option.value === value)) {
+            select.add(new Option(value, value));
+        }
+        select.value = value;
+    }
+
     document.body.addEventListener("click", (e) => {
         if (e.target.id === "proxySaveBtn") quickSaveCharacter();
         else if (e.target.id === "proxyLoadBtn") openSaveListModal();
@@ -239,6 +314,18 @@ function attachForgeListeners() {
             mode = 'edit'; document.getElementById("forgeModalTitle").innerText = "Редактирование кастомного предмета";
             clearForgeForm(); modal.classList.add("visible"); renderSearchList("");
         } else if (e.target.id === "forgeSaveBtn") saveItemToFile();
+        else if (e.target.id === "forgeAddStatEffectBtn") {
+            document.getElementById("forgeStatEffectsContainer")?.appendChild(createEffectRow("stat"));
+        } else if (e.target.id === "forgeAddSkillEffectBtn") {
+            document.getElementById("forgeSkillEffectsContainer")?.appendChild(createEffectRow("skill"));
+        } else if (e.target.classList.contains("forge-remove-effect")) {
+            const row = e.target.closest(".forge-effect-row");
+            const container = row?.parentElement;
+            row?.remove();
+            if (container && !container.children.length) {
+                container.appendChild(createEffectRow(container.id.includes("Stat") ? "stat" : "skill"));
+            }
+        }
         else if (e.target !== searchInput && e.target !== searchResults) {
             if (searchResults) searchResults.style.display = "none";
         }
@@ -258,21 +345,11 @@ function attachForgeListeners() {
         const properties = document.getElementById("forgeProperties").value.trim();
         const ac = document.getElementById("forgeAc").value.trim();
         const stealth = document.getElementById("forgeStealth").value;
-        const statTarget = document.getElementById("forgeStatTarget").value;
-        const statBonus = parseInt(document.getElementById("forgeStatBonus").value) || 0;
-        const skillTarget = document.getElementById("forgeSkillTarget").value;
-        const skillBonus = parseInt(document.getElementById("forgeSkillBonus").value) || 0;
+        const statEffects = collectEffectRows("stat");
+        const skillEffects = collectEffectRows("skill");
         const acBonus = parseInt(document.getElementById("forgeAcBonus").value) || 0;
         const retaliationDice = document.getElementById("forgeRetaliationDice").value.trim();
         const retaliationType = document.getElementById("forgeRetaliationType").value.trim();
-        const statNames = { str: "Сила", dex: "Ловкость", con: "Телосложение", int: "Интеллект", wis: "Мудрость", cha: "Харизма" };
-        const skillNames = {
-            acrobatics: "Акробатика", animal_handling: "Уход за животными", arcana: "Тайная магия",
-            athletics: "Атлетика", deception: "Обман", history: "История", insight: "Проницательность",
-            intimidation: "Запугивание", investigation: "Анализ", medicine: "Медицина", nature: "Природа",
-            perception: "Восприятие", performance: "Выступление", persuasion: "Убеждение",
-            religion: "Религия", sleight_of_hand: "Ловкость рук", stealth: "Скрытность", survival: "Выживание"
-        };
         const signed = value => value > 0 ? `+${value}` : `${value}`;
 
         let htmlDesc = `<table style='width:100%; text-align:left; border-collapse:collapse; margin-bottom:8px; font-size:13px;'>`;
@@ -283,8 +360,12 @@ function attachForgeListeners() {
         if (properties) htmlDesc += `<tr style='border-bottom:1px solid var(--border-color);'><td style='color:var(--text-muted); padding:6px;'>Свойства:</td><td style='padding:6px;'>${properties}</td></tr>`;
         if (ac) htmlDesc += `<tr style='border-bottom:1px solid var(--border-color);'><td style='color:var(--accent-success); padding:6px;'>КЗ:</td><td style='padding:6px;'><b>${ac}</b></td></tr>`;
         if (ac && stealth === "Помеха") htmlDesc += `<tr style='border-bottom:1px solid var(--border-color);'><td style='color:var(--accent); padding:6px;'>Скрытность:</td><td style='padding:6px;'><b>Помеха</b></td></tr>`;
-        if (statTarget && statBonus) htmlDesc += `<tr style='border-bottom:1px solid var(--border-color);'><td style='color:var(--accent-success); padding:6px;'>Характеристика:</td><td style='padding:6px;'><b>${signed(statBonus)} — ${statNames[statTarget]}</b> при надевании</td></tr>`;
-        if (skillTarget && skillBonus) htmlDesc += `<tr style='border-bottom:1px solid var(--border-color);'><td style='color:var(--accent-success); padding:6px;'>Навык:</td><td style='padding:6px;'><b>${signed(skillBonus)} — ${skillNames[skillTarget]}</b> при надевании</td></tr>`;
+        Object.entries(statEffects).forEach(([target, bonus]) => {
+            htmlDesc += `<tr style='border-bottom:1px solid var(--border-color);'><td style='color:var(--accent-success); padding:6px;'>Характеристика:</td><td style='padding:6px;'><b>${signed(bonus)} — ${STAT_NAMES[target]}</b> при надевании</td></tr>`;
+        });
+        Object.entries(skillEffects).forEach(([target, bonus]) => {
+            htmlDesc += `<tr style='border-bottom:1px solid var(--border-color);'><td style='color:var(--accent-success); padding:6px;'>Навык:</td><td style='padding:6px;'><b>${signed(bonus)} — ${SKILL_NAMES[target]}</b> при надевании</td></tr>`;
+        });
         if (acBonus) htmlDesc += `<tr style='border-bottom:1px solid var(--border-color);'><td style='color:var(--accent-success); padding:6px;'>Бонус КЗ:</td><td style='padding:6px;'><b>${signed(acBonus)}</b> при надевании</td></tr>`;
         if (retaliationDice) htmlDesc += `<tr style='border-bottom:1px solid var(--border-color);'><td style='color:var(--accent-yellow); padding:6px;'>Ответный урон:</td><td style='padding:6px;'><b>${retaliationDice} (${retaliationType || "Без типа"})</b>, когда по владельцу попадают атакой</td></tr>`;
         htmlDesc += `<tr><td style='color:var(--accent-success); padding:6px;'>Стоимость/Вес:</td><td style='padding:6px;'><b>${costStr}</b> / ${weight} фнт.</td></tr></table>`;
@@ -311,8 +392,8 @@ function attachForgeListeners() {
         if (ac) { newItem.ac = ac; newItem.stealth = stealth; }
 
         const equipEffects = {};
-        if (statTarget && statBonus) equipEffects.stats = { [statTarget]: statBonus };
-        if (skillTarget && skillBonus) equipEffects.skills = { [skillTarget]: skillBonus };
+        if (Object.keys(statEffects).length) equipEffects.stats = statEffects;
+        if (Object.keys(skillEffects).length) equipEffects.skills = skillEffects;
         if (acBonus) equipEffects.ac = acBonus;
         if (retaliationDice) {
             equipEffects.retaliationDamage = {
@@ -348,25 +429,21 @@ function attachForgeListeners() {
     function loadItemToForm(key, item) {
         if (mode === 'edit') { document.getElementById("forgeKey").value = key; document.getElementById("forgeKey").disabled = true; }
         document.getElementById("forgeName").value = item.name || "";
-        document.getElementById("forgeCategory").value = item.category || "";
-        document.getElementById("forgeType").value = item.type || "";
+        setSelectValue("forgeCategory", item.category || "Снаряжение");
+        setSelectValue("forgeType", item.type || "Снаряжение");
         document.getElementById("forgeCost").value = item.cost || "";
         document.getElementById("forgeWeight").value = item.weight || 0;
         document.getElementById("forgeDamage").value = item.damage || "";
-        document.getElementById("forgeDamageType").value = item.damageType || "";
+        setSelectValue("forgeDamageType", item.damageType || "");
         document.getElementById("forgeScalingAbility").value = item.scalingAbility || "auto";
         document.getElementById("forgeProperties").value = item.properties || "";
         document.getElementById("forgeAc").value = item.ac || "";
         document.getElementById("forgeStealth").value = item.stealth === "Помеха" ? "Помеха" : "—";
-        const statEffect = Object.entries(item.equipEffects?.stats || {})[0] || ["", 0];
-        const skillEffect = Object.entries(item.equipEffects?.skills || {})[0] || ["", 0];
-        document.getElementById("forgeStatTarget").value = statEffect[0];
-        document.getElementById("forgeStatBonus").value = statEffect[1];
-        document.getElementById("forgeSkillTarget").value = skillEffect[0];
-        document.getElementById("forgeSkillBonus").value = skillEffect[1];
+        renderEffectRows("stat", Object.entries(item.equipEffects?.stats || {}));
+        renderEffectRows("skill", Object.entries(item.equipEffects?.skills || {}));
         document.getElementById("forgeAcBonus").value = item.equipEffects?.ac || 0;
         document.getElementById("forgeRetaliationDice").value = item.equipEffects?.retaliationDamage?.dice || "";
-        document.getElementById("forgeRetaliationType").value = item.equipEffects?.retaliationDamage?.type || "";
+        setSelectValue("forgeRetaliationType", item.equipEffects?.retaliationDamage?.type || "");
         let cleanDesc = item.description || "";
         const paragraphs = [...cleanDesc.matchAll(/<p[^>]*>(.*?)<\/p>/gis)];
         document.getElementById("forgeEffect").value = paragraphs.length
@@ -378,10 +455,12 @@ function attachForgeListeners() {
         document.querySelectorAll("#itemForgeModal input:not(#forgeKey), #itemForgeModal textarea").forEach(el => el.value = "");
         document.getElementById("forgeScalingAbility").value = "auto";
         document.getElementById("forgeStealth").value = "—";
-        document.getElementById("forgeStatTarget").value = "";
-        document.getElementById("forgeSkillTarget").value = "";
-        document.getElementById("forgeStatBonus").value = 0;
-        document.getElementById("forgeSkillBonus").value = 0;
+        document.getElementById("forgeCategory").value = "Снаряжение";
+        document.getElementById("forgeType").value = "Снаряжение";
+        document.getElementById("forgeDamageType").value = "";
+        document.getElementById("forgeRetaliationType").value = "";
+        renderEffectRows("stat");
+        renderEffectRows("skill");
         document.getElementById("forgeAcBonus").value = 0;
     }
 }

@@ -6,7 +6,7 @@ import { charData } from '../../saves/tempSave.js';
 import { spellsData } from '../data/magicbookData.js';
 import {
     ensureMagicBookStructure, getPrimaryCasterMetrics, getSecondaryCasterMetrics,
-    getAvailableSpellSlots, getSpellLimits
+    getAvailableSpellSlots, getSpellLimits, getAlwaysPreparedSpells
 } from '../scripts/magicbookScript.js';
 import { initInspector } from './infoTab.js';
 
@@ -274,15 +274,19 @@ function renderSpellTables() {
     const bookContainer = document.getElementById("bookSpellsContainer");
     if (!prepContainer || !bookContainer) return;
 
+    const alwaysPrepared = getAlwaysPreparedSpells();
     let prepHtml = "";
     charData.magic.prepared.forEach((key, idx) => {
         const sp = spellsData[key];
         if (sp) {
+            const isAlwaysPrepared = alwaysPrepared.includes(key);
             prepHtml += `
                 <div class="inventory-item-row interactive-node spell-prep-grid-row" data-inspector="<b>${sp.name}:</b><br>${sp.description}">
                     <span class="highlight-box math-val mini" style="width:28px; text-align:center;">${sp.level}</span>
                     <span class="inv-item-name spell-grid-name">${sp.name}</span>
-                    <button class="step-btn minus unprep-btn" data-idx="${idx}" title="Убрать из подготовленных">✕</button>
+                    ${isAlwaysPrepared
+                        ? `<span class="spell-status-badge ready-badge" title="Заклинание всегда подготовлено и не занимает обычное место">Всегда</span>`
+                        : `<button class="step-btn minus unprep-btn" data-idx="${idx}" title="Убрать из подготовленных">✕</button>`}
                 </div>`;
         }
     });
@@ -297,10 +301,13 @@ function renderSpellTables() {
         const sp = spellsData[key];
         if (sp) {
             const isPrep = charData.magic.prepared.includes(key);
+            const isAlwaysPrepared = alwaysPrepared.includes(key);
 
             let actionBtnHtml = "";
-            if (sp.level === 0) {
-                actionBtnHtml = `<span class="spell-status-badge cantrip-badge">Заговор</span>`;
+            if (isAlwaysPrepared) {
+                actionBtnHtml = `<span class="spell-status-badge ready-badge" title="Не занимает обычное место">Всегда</span>`;
+            } else if (sp.level === 0) {
+                actionBtnHtml = `<span class="spell-status-badge cantrip-badge">Заговор готов</span>`;
             } else if (!isPrep) {
                 actionBtnHtml = `<button class="step-btn prep-btn spell-action-btn" data-key="${key}">Подготовить</button>`;
             } else {
@@ -319,7 +326,7 @@ function renderSpellTables() {
                     </div>
                     <div class="spell-controls-box">
                         ${actionBtnHtml}
-                        <button class="step-btn del-spell-btn" data-idx="${idx}" title="Удалить из книги">✕</button>
+                        ${isAlwaysPrepared ? "" : `<button class="step-btn del-spell-btn" data-idx="${idx}" title="Удалить из книги">✕</button>`}
                     </div>
                 </div>`;
         }
@@ -330,8 +337,10 @@ function renderSpellTables() {
     bookContainer.querySelectorAll('.prep-btn').forEach(b => b.onclick = () => { charData.magic.prepared.push(b.getAttribute("data-key")); renderCasterStats(); renderSpellTables(); initInspector(); });
     bookContainer.querySelectorAll('.del-spell-btn').forEach(b => b.onclick = () => {
         const removedKey = charData.magic.known[parseInt(b.getAttribute("data-idx"))];
+        if (getAlwaysPreparedSpells().includes(removedKey)) return;
         charData.magic.known.splice(parseInt(b.getAttribute("data-idx")), 1);
         charData.magic.prepared = charData.magic.prepared.filter(k => k !== removedKey);
+        charData.magic.manualSpells = (charData.magic.manualSpells || []).filter(k => k !== removedKey);
         renderCasterStats(); renderSpellTables(); initInspector();
     });
     document.getElementById("addSpellToBookBtn")?.addEventListener("click", openSpellPickerModal);
@@ -398,7 +407,12 @@ function openSpellPickerModal() {
     });
 
     confirmBtn.onclick = () => {
-        container.querySelectorAll('input[name="newSpellCb"]:checked').forEach(cb => charData.magic.known.push(cb.value));
+        container.querySelectorAll('input[name="newSpellCb"]:checked').forEach(cb => {
+            if (!charData.magic.known.includes(cb.value)) charData.magic.known.push(cb.value);
+            if (!charData.magic.prepared.includes(cb.value)) charData.magic.prepared.push(cb.value);
+            if (!charData.magic.manualSpells) charData.magic.manualSpells = [];
+            if (!charData.magic.manualSpells.includes(cb.value)) charData.magic.manualSpells.push(cb.value);
+        });
         renderCasterStats(); renderSpellTables(); modal.classList.remove("visible"); initInspector();
         document.dispatchEvent(new Event('charDataUpdated'));
     };

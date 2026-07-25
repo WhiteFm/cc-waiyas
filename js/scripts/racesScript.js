@@ -204,8 +204,9 @@ export function applyRaceBonuses() {
     if (!charData.magic) charData.magic = { known: [], prepared: [], innateSpells: [] };
     if (!charData.magic.innateSpells) charData.magic.innateSpells = [];
 
-    charData.magic.known = charData.magic.known.filter(sp => !charData.magic.innateSpells.includes(sp));
-    charData.magic.prepared = charData.magic.prepared.filter(sp => !charData.magic.innateSpells.includes(sp));
+    const manuallySelectedSpells = charData.magic.manualSpells || [];
+    charData.magic.known = charData.magic.known.filter(sp => !charData.magic.innateSpells.includes(sp) || manuallySelectedSpells.includes(sp));
+    charData.magic.prepared = charData.magic.prepared.filter(sp => !charData.magic.innateSpells.includes(sp) || manuallySelectedSpells.includes(sp));
     charData.magic.innateSpells = [];
 
     const raceSpells = {
