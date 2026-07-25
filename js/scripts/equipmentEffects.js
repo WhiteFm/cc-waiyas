@@ -20,6 +20,16 @@ export const EQUIPMENT_DEFINITIONS = {
     ...customItemsData
 };
 
+export function meetsEquipmentRequirements(definition, charData) {
+    const requirements = definition?.requirements?.stats || {};
+    return Object.entries(requirements).every(([stat, minimum]) => {
+        const base = Number(charData.stats?.[stat]?.base) || 0;
+        const permanentBonus = Number(charData.bonuses?.stats?.[stat]) || 0;
+        const backgroundBonus = Number(charData.backgroundState?.statsApplied?.[stat]) || 0;
+        return base + permanentBonus + backgroundBonus >= (Number(minimum) || 0);
+    });
+}
+
 export function getActiveEquippedItems(charData) {
     const equipped = charData.inventory?.equipped || {};
     const result = [];
@@ -51,6 +61,7 @@ export function collectEquipmentEffects(charData) {
         spellSlots: {},
         preparedSpells: 0,
         preparedCantrips: 0,
+        damage: [],
         resistances: [],
         vulnerabilities: [],
         ac: 0,
@@ -73,6 +84,7 @@ export function collectEquipmentEffects(charData) {
         const def = EQUIPMENT_DEFINITIONS[item.key];
         const effects = def?.equipEffects;
         if (!effects) return;
+        if (!meetsEquipmentRequirements(def, charData)) return;
         if (effects.requiresUnarmored && (hasArmor || hasShield)) return;
 
         Object.entries(effects.stats || {}).forEach(([key, value]) => {
@@ -96,6 +108,14 @@ export function collectEquipmentEffects(charData) {
         });
         totals.preparedSpells += Number(effects.preparedSpells) || 0;
         totals.preparedCantrips += Number(effects.preparedCantrips) || 0;
+        (effects.damage || []).forEach(effect => {
+            if (effect?.value && effect?.type) totals.damage.push({
+                itemKey: item.key,
+                itemName: def.name,
+                value: String(effect.value),
+                type: effect.type
+            });
+        });
         (effects.resistances || []).forEach(key => {
             if (!totals.resistances.includes(key)) totals.resistances.push(key);
         });

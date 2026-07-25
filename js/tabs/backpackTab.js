@@ -5,6 +5,7 @@
 import { charData } from '../../saves/tempSave.js';
 import { syncAllSkillsUI } from './skillsTab.js';
 import { spellsData } from '../data/magicbookData.js';
+import { collectEquipmentEffects, meetsEquipmentRequirements } from '../scripts/equipmentEffects.js';
 
 import { ammoData } from '../data/equipments/ammoData.js';
 import { amuletsData } from '../data/equipments/amuletsData.js';
@@ -405,6 +406,7 @@ function renderEquippedSlots() {
         if (itemObj) {
             const item = ALL_ITEMS_MAP[itemObj.key] || { name: itemObj.key, description: "Описание предмета не найдено." }; let extraHtml = "";
             if (item.damage) {
+                const requirementsMet = meetsEquipmentRequirements(item, charData);
                 let statKey = item.scalingAbility;
                 if (statKey === "finesse") {
                     const strMod = charData.stats.str?.mod || 0;
@@ -429,7 +431,7 @@ function renderEquippedSlots() {
                 }
 
                 const pb = charData.origin?.pb || 2;
-                let atkMod = statMod + (isProf ? pb : 0) + (Number(item.attackBonus) || 0);
+                let atkMod = statMod + (isProf ? pb : 0) + (requirementsMet ? (Number(item.attackBonus) || 0) : 0);
                 let dmgMod = statMod;
 
                 // === ПРИМЕНЕНИЕ БОЕВЫХ СТИЛЕЙ К ОРУЖИЮ ===
@@ -463,7 +465,11 @@ function renderEquippedSlots() {
 
                 const atkStr = atkMod >= 0 ? `+${atkMod}` : `${atkMod}`;
                 const dmgStr = dmgMod !== 0 ? (dmgMod > 0 ? `+${dmgMod}` : `${dmgMod}`) : "";
-                extraHtml = `<div style="display:flex; justify-content:center; gap:8px; margin-top:2px;"><span style="font-size: 11px; color: var(--accent-success); font-weight:bold;" title="Бонус атаки">⚔️ Атака: ${atkStr}</span><span style="font-size: 11px; color: var(--accent-yellow); font-weight:bold;" title="Урон">🩸 Урон: ${item.damage}${dmgStr}</span></div>`;
+                const bonusDamage = collectEquipmentEffects(charData).damage
+                    .map(effect => ` + ${effect.value} ${effect.type}`)
+                    .join("");
+                const requirementWarning = requirementsMet ? "" : `<span style="font-size:10px;color:var(--accent);">Требования не выполнены — бонусы отключены</span>`;
+                extraHtml = `<div style="display:flex; justify-content:center; gap:8px; margin-top:2px;"><span style="font-size: 11px; color: var(--accent-success); font-weight:bold;" title="Бонус атаки">⚔️ Атака: ${atkStr}</span><span style="font-size: 11px; color: var(--accent-yellow); font-weight:bold;" title="Урон">🩸 Урон: ${item.damage}${dmgStr}${bonusDamage}</span></div>${requirementWarning}`;
             }
             disp.innerHTML = `<span style="color:var(--text-color); font-weight:bold; font-size:13px; text-align:center;">${item.name}</span>${extraHtml}<span style="font-size:10px; color:var(--accent); cursor:pointer; margin-top:4px;">[Снять]</span>`;
             if (slotEl) { slotEl.setAttribute("data-inspector", formatInspector(item)); slotEl.onclick = () => window.invManager.unequipWeapon(slot); }

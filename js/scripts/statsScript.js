@@ -9,7 +9,7 @@ import { applyFeatBonuses } from './attributesScript.js';
 import { armorsData } from '../data/equipments/armorsData.js';
 import { instrumentsData } from '../data/equipments/instrumentsData.js';
 import { customItemsData } from '../data/customItems.js';
-import { collectEquipmentEffects } from './equipmentEffects.js';
+import { collectEquipmentEffects, meetsEquipmentRequirements } from './equipmentEffects.js';
 
 export { charData, charData as charState };
 
@@ -320,7 +320,7 @@ export function recalculateStats() {
 
     if (eqArmor) {
         const armor = armorsData[eqArmor.key] || customItemsData[eqArmor.key];
-        if (armor) {
+        if (armor && meetsEquipmentRequirements(armor, charData)) {
             hasStealthDisadv = armor.stealth === "Помеха";
 
             const reqStr = parseInt((armor.strReq || "").replace(/\D/g, '')) || 0;
@@ -335,10 +335,16 @@ export function recalculateStats() {
             if (!hasArmorProf) {
                 baseAc = 10;
             } else {
-                const baseArmorValue = parseInt(armor.ac) || 10;
+                const baseArmorValue = Number(armor.baseAc) || parseInt(armor.ac) || 10;
+                const structuredAddsDex = armor.addsDex;
                 const maxDexMatch = (armor.ac || "").match(/(?:макс\.|max\.?)\s*(\d+)/i);
+                const structuredMaxDex = armor.maxDexBonus;
 
-                if (maxDexMatch) {
+                if (structuredAddsDex && structuredMaxDex !== null && structuredMaxDex !== undefined) {
+                    baseAc = baseArmorValue + Math.min(Number(structuredMaxDex), charData.stats.dex.mod);
+                } else if (structuredAddsDex) {
+                    baseAc = baseArmorValue + charData.stats.dex.mod;
+                } else if (maxDexMatch) {
                     const maxDexAllowed = parseInt(maxDexMatch[1]);
                     baseAc = baseArmorValue + Math.min(maxDexAllowed, charData.stats.dex.mod);
                 } else if (category.includes("Тяжёлый") || category.includes("Тяжелый") || (armor.ac && !armor.ac.includes("Лов"))) {
@@ -379,7 +385,7 @@ export function recalculateStats() {
 
     if (eqShield) {
         const shieldDef = armorsData[eqShield.key] || customItemsData[eqShield.key];
-        if (charData.proficiencies.armor.shield) {
+        if (charData.proficiencies.armor.shield && meetsEquipmentRequirements(shieldDef, charData)) {
             let sBonus = 2;
             if (shieldDef && shieldDef.ac) {
                 const match = shieldDef.ac.match(/\+?(\d+)/);

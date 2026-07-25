@@ -46,7 +46,7 @@ const EFFECT_TYPE_NAMES = {
     stat: "Характеристика", skill: "Навык", initiative: "Инициатива",
     save: "Спасбросок", resistance: "Сопротивление", vulnerability: "Уязвимость",
     spell_slot: "Ячейки заклинаний", prepared_spells: "Подготовленные заклинания",
-    prepared_cantrips: "Подготовленные заговоры"
+    prepared_cantrips: "Подготовленные заговоры", damage: "Урон", ac: "КЗ"
 };
 const SPELL_LEVEL_NAMES = Object.fromEntries(
     Array.from({ length: 9 }, (_, index) => [String(index + 1), `${index + 1} уровень`])
@@ -180,26 +180,35 @@ function renderForgeUI() {
         modal.id = "itemForgeModal";
         modal.className = "modal-overlay";
         modal.innerHTML = `
-            <div class="modal-content" style="max-width: 600px; width: 95%; text-align: left; max-height: 90vh; overflow-y: auto;">
-                <h3 id="forgeModalTitle" class="font-group-1" style="color: var(--accent-yellow); margin-top: 0; text-align: center;">Создание предмета</h3>
-                <div style="display: flex; flex-direction: column; margin-bottom: 15px; position: relative;">
+            <div class="modal-content forge-modal-content">
+                <div class="forge-modal-header">
+                    <div class="forge-title-icon">⚒️</div>
+                    <div>
+                        <h3 id="forgeModalTitle" class="font-group-1">Создание предмета</h3>
+                        <p>Настройте свойства предмета, требования и эффекты при надевании</p>
+                    </div>
+                </div>
+                <div class="forge-search-block">
                     <label class="font-group-3" style="color: var(--text-muted); font-size: 11px;">Поиск основы (шаблона):</label>
                     <input type="text" id="forgeSearchInput" class="input-field font-group-3" placeholder="Введите название предмета..." autocomplete="off">
-                    <div id="forgeSearchResults" style="position: absolute; top: 100%; left: 0; right: 0; max-height: 180px; overflow-y: auto; background: #1a1e24; border: 1px solid var(--border-color); z-index: 100; display: none; box-shadow: 0 4px 10px rgba(0,0,0,0.5);"></div>
+                    <div id="forgeSearchResults" class="forge-search-results"></div>
                 </div>
 
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px;">
+                <div class="forge-section forge-section-general">
+                    <div class="forge-section-heading"><span>📋</span><div><b>Основные данные</b><small>Название, размещение и стоимость</small></div></div>
+                    <div class="forge-fields-grid forge-fields-general">
                     <div><label class="font-group-3" style="color: var(--text-muted); font-size: 11px;">Ключ (ID - англ.):</label><input type="text" id="forgeKey" class="input-field font-group-3" placeholder="custom_sword_1"></div>
                     <div><label class="font-group-3" style="color: var(--text-muted); font-size: 11px;">Название:</label><input type="text" id="forgeName" class="input-field font-group-3"></div>
                     <div><label class="font-group-3" style="color: var(--text-muted); font-size: 11px;">Категория:</label><select id="forgeCategory" class="input-field font-group-3">${optionList(templateValues("category"))}</select></div>
                     <div><label class="font-group-3" style="color: var(--text-muted); font-size: 11px;">Тип / слот:</label><select id="forgeType" class="input-field font-group-3">${optionList(templateValues("type"))}</select></div>
                     <div><label class="font-group-3" style="color: var(--text-muted); font-size: 11px;">Цена:</label><input type="text" id="forgeCost" class="input-field font-group-3" placeholder="10 ЗМ"></div>
                     <div><label class="font-group-3" style="color: var(--text-muted); font-size: 11px;">Вес (фнт):</label><input type="number" step="0.1" id="forgeWeight" class="input-field font-group-3" placeholder="2.0"></div>
+                    </div>
                 </div>
 
-                <div style="margin-top:16px; padding:14px; border:1px solid rgba(239,68,68,.35); border-radius:9px; background:rgba(239,68,68,.04);">
-                    <div style="font-weight:bold; color:var(--accent); margin-bottom:10px; font-size:14px;">⚔️ Данные оружия</div>
-                    <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(130px,1fr)); gap:10px;">
+                <div class="forge-section forge-section-weapon">
+                    <div class="forge-section-heading"><span>⚔️</span><div><b>Данные оружия</b><small>Атака, урон и используемая характеристика</small></div></div>
+                    <div class="forge-fields-grid">
                     <div><label class="font-group-3" style="color: var(--text-muted); font-size: 11px;">Урон:</label><input type="text" id="forgeDamage" class="input-field font-group-3" placeholder="1к8"></div>
                     <div><label class="font-group-3" style="color: var(--text-muted); font-size: 11px;">Тип урона:</label><select id="forgeDamageType" class="input-field font-group-3">${DAMAGE_TYPE_OPTIONS}</select></div>
                     <div><label class="font-group-3" style="color: var(--text-muted); font-size: 11px;">Бонус к броску атаки:</label><input type="number" id="forgeAttackBonus" class="input-field font-group-3" value="0" placeholder="+1 / -1"></div>
@@ -220,21 +229,28 @@ function renderForgeUI() {
                     </div>
                 </div>
 
-                <div style="margin-top:12px; padding:14px; border:1px solid rgba(59,130,246,.35); border-radius:9px; background:rgba(59,130,246,.04);">
-                    <div style="font-weight:bold; color:#60a5fa; margin-bottom:10px; font-size:14px;">🛡️ Данные доспеха</div>
-                    <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:10px;">
-                        <div><label class="font-group-3" style="color:var(--text-muted);font-size:11px;">Формула КЗ:</label><input type="text" id="forgeAc" class="input-field font-group-3" placeholder="14 + модификатор Лов (макс. 2)"></div>
+                <div class="forge-section forge-section-armor">
+                    <div class="forge-section-heading"><span>🛡️</span><div><b>Данные доспеха</b><small>Базовая защита и ограничение Ловкости</small></div></div>
+                    <div class="forge-fields-grid">
+                        <div><label class="font-group-3" style="color:var(--text-muted);font-size:11px;">Базовый КЗ:</label><input type="number" id="forgeAc" class="input-field font-group-3" placeholder="14"></div>
+                        <div><label class="font-group-3" style="color:var(--text-muted);font-size:11px;">Добавлять Ловкость:</label><select id="forgeArmorAddsDex" class="input-field font-group-3"><option value="false">Нет</option><option value="true">Да</option></select></div>
+                        <div><label class="font-group-3" style="color:var(--text-muted);font-size:11px;">Максимум от Ловкости:</label><input type="number" id="forgeArmorMaxDex" class="input-field font-group-3" min="0" placeholder="Без ограничения"></div>
                         <div><label class="font-group-3" style="color:var(--text-muted);font-size:11px;">Помеха Скрытности:</label><select id="forgeStealth" class="input-field font-group-3"><option value="—">Нет</option><option value="Помеха">Есть</option></select></div>
                     </div>
                 </div>
 
-                <div style="margin-top:12px; padding:14px; border:1px solid rgba(34,197,94,.35); border-radius:9px; background:rgba(34,197,94,.04);">
-                    <div style="font-weight:bold; color:var(--accent-success); margin-bottom:10px; font-size:14px;">✨ Эффекты при надевании</div>
+                <div class="forge-section forge-section-requirements">
+                    <div class="forge-section-heading"><span>⚠️</span><div><b>Требования</b><small>Условия применения свойств предмета</small></div></div>
+                    <div id="forgeRequirementsContainer"></div>
+                    <button type="button" class="settings-btn btn-dark" id="forgeAddRequirementBtn" style="margin-top:6px;">＋ Добавить требование</button>
+                    <div class="font-group-3" style="color:var(--text-muted);font-size:11px;margin-top:8px;">Если хотя бы одно требование не выполнено, свойства и бонусы предмета не применяются.</div>
+                </div>
+
+                <div class="forge-section forge-section-effects">
+                    <div class="forge-section-heading"><span>✨</span><div><b>Эффекты при надевании</b><small>Бонусы, штрафы и особые свойства</small></div></div>
                     <label class="font-group-3" style="color:var(--text-muted);font-size:11px;">Бонусы, сопротивления и уязвимости:</label>
                     <div id="forgeEffectsContainer"></div>
                     <button type="button" class="settings-btn btn-dark" id="forgeAddEffectBtn" style="margin:6px 0 12px;">＋ Добавить эффект</button>
-                    <div style="max-width:240px;"><label class="font-group-3" style="color:var(--text-muted);font-size:11px;">Бонус к КЗ:</label><input type="number" id="forgeAcBonus" class="input-field font-group-3" value="0" placeholder="+1 / -1"></div>
-
                     <div style="font-weight:bold;color:var(--accent-yellow);font-size:12px;margin:8px 0;">Ответный урон при попадании по владельцу</div>
                     <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
                         <div><label class="font-group-3" style="color:var(--text-muted);font-size:11px;">Урон:</label><input type="text" id="forgeRetaliationDice" class="input-field font-group-3" placeholder="2к4"></div>
@@ -242,15 +258,15 @@ function renderForgeUI() {
                     </div>
                 </div>
 
-                <hr style="border-color: rgba(255,255,255,0.1); margin: 15px 0;">
-                <div>
+                <div class="forge-section forge-section-description">
+                    <div class="forge-section-heading"><span>✍️</span><div><b>Описание</b><small>Абзацы и переносы сохранятся при просмотре</small></div></div>
                     <label class="font-group-3" style="color: var(--text-muted); font-size: 11px;">Описание / Эффект:</label>
-                    <textarea id="forgeEffect" class="input-field font-group-3" style="height: 80px; resize: vertical;" placeholder="Опишите свойства предмета..."></textarea>
+                    <textarea id="forgeEffect" class="input-field font-group-3" placeholder="Опишите свойства предмета..."></textarea>
                 </div>
 
-                <div style="display: flex; gap: 10px; margin-top: 15px; flex-wrap: wrap;">
-                    <button class="settings-btn btn-green" id="forgeSaveBtn" style="flex:1; min-width: 140px;">Сохранить в файл</button>
-                    <button class="settings-btn btn-dark" onclick="document.getElementById('itemForgeModal').classList.remove('visible')" style="flex:1; min-width: 140px;">Отмена</button>
+                <div class="forge-modal-actions">
+                    <button class="settings-btn btn-dark" onclick="document.getElementById('itemForgeModal').classList.remove('visible')">Отмена</button>
+                    <button class="settings-btn btn-green" id="forgeSaveBtn">💾 Сохранить в файл</button>
                 </div>
             </div>
         `;
@@ -273,9 +289,11 @@ function attachForgeListeners() {
         if (kind === "stat" || kind === "save") return STAT_NAMES;
         if (kind === "skill") return SKILL_NAMES;
         if (kind === "resistance" || kind === "vulnerability") return DAMAGE_EFFECT_NAMES;
+        if (kind === "damage") return DAMAGE_EFFECT_NAMES;
         if (kind === "spell_slot") return SPELL_LEVEL_NAMES;
         if (kind === "prepared_spells") return { prepared: "Максимум подготовленных" };
         if (kind === "prepared_cantrips") return { cantrips: "Максимум подготовленных заговоров" };
+        if (kind === "ac") return { ac: "Класс Защиты" };
         return { initiative: "Инициатива" };
     }
 
@@ -284,11 +302,12 @@ function attachForgeListeners() {
         const targetSelect = row.querySelector(".forge-effect-target");
         const bonusInput = row.querySelector(".forge-effect-bonus");
         targetSelect.innerHTML = selectOptions(getEffectTargets(kind), "Выберите цель");
-        if (["initiative", "prepared_spells", "prepared_cantrips"].includes(kind)) {
+        if (["initiative", "prepared_spells", "prepared_cantrips", "ac"].includes(kind)) {
             const fixedTargets = {
                 initiative: ["initiative", "Инициатива"],
                 prepared_spells: ["prepared", "Максимум подготовленных"],
-                prepared_cantrips: ["cantrips", "Максимум подготовленных заговоров"]
+                prepared_cantrips: ["cantrips", "Максимум подготовленных заговоров"],
+                ac: ["ac", "Класс Защиты"]
             };
             const [fixedTarget, fixedLabel] = fixedTargets[kind];
             targetSelect.innerHTML = `<option value="${fixedTarget}">${fixedLabel}</option>`;
@@ -298,6 +317,8 @@ function attachForgeListeners() {
             targetSelect.value = target;
         }
         bonusInput.style.display = ["resistance", "vulnerability"].includes(kind) ? "none" : "";
+        bonusInput.type = kind === "damage" ? "text" : "number";
+        bonusInput.placeholder = kind === "damage" ? "1к6 / 2" : "+2 / -1";
     }
 
     function createEffectRow(kind = "stat", target = "", bonus = 0) {
@@ -307,7 +328,7 @@ function attachForgeListeners() {
         row.innerHTML = `
             <select class="input-field font-group-3 forge-effect-kind">${selectOptions(EFFECT_TYPE_NAMES, "Вид эффекта")}</select>
             <select class="input-field font-group-3 forge-effect-target"></select>
-            <input type="number" class="input-field font-group-3 forge-effect-bonus" value="${Number(bonus) || 0}" placeholder="+2 / -1">
+            <input type="number" class="input-field font-group-3 forge-effect-bonus" value="${bonus ?? 0}" placeholder="+2 / -1">
             <button type="button" class="settings-btn btn-dark forge-remove-effect" title="Удалить" style="padding:8px;">×</button>`;
         row.querySelector(".forge-effect-kind").value = kind;
         updateEffectRow(row, target);
@@ -323,15 +344,18 @@ function attachForgeListeners() {
     }
 
     function collectEffectRows() {
-        const result = { stats: {}, skills: {}, saves: {}, initiative: 0, resistances: [], vulnerabilities: [], spellSlots: {}, preparedSpells: 0, preparedCantrips: 0 };
+        const result = { stats: {}, skills: {}, saves: {}, initiative: 0, ac: 0, resistances: [], vulnerabilities: [], damage: [], spellSlots: {}, preparedSpells: 0, preparedCantrips: 0 };
         document.querySelectorAll("#forgeEffectsContainer .forge-effect-row").forEach(row => {
             const kind = row.querySelector(".forge-effect-kind").value;
             const target = row.querySelector(".forge-effect-target").value;
-            const bonus = parseInt(row.querySelector(".forge-effect-bonus").value, 10) || 0;
+            const rawBonus = row.querySelector(".forge-effect-bonus").value.trim();
+            const bonus = parseInt(rawBonus, 10) || 0;
             if (kind === "stat" && target && bonus) result.stats[target] = (result.stats[target] || 0) + bonus;
             if (kind === "skill" && target && bonus) result.skills[target] = (result.skills[target] || 0) + bonus;
             if (kind === "save" && target && bonus) result.saves[target] = (result.saves[target] || 0) + bonus;
             if (kind === "initiative" && bonus) result.initiative += bonus;
+            if (kind === "ac" && bonus) result.ac += bonus;
+            if (kind === "damage" && target && rawBonus) result.damage.push({ type: target, value: rawBonus });
             if (kind === "spell_slot" && target && bonus) result.spellSlots[target] = (result.spellSlots[target] || 0) + bonus;
             if (kind === "prepared_spells" && bonus) result.preparedSpells += bonus;
             if (kind === "prepared_cantrips" && bonus) result.preparedCantrips += bonus;
@@ -341,6 +365,35 @@ function attachForgeListeners() {
         return result;
     }
 
+    function createRequirementRow(stat = "str", minimum = 0) {
+        const row = document.createElement("div");
+        row.className = "forge-requirement-row";
+        row.style.cssText = "display:grid;grid-template-columns:minmax(150px,2fr) minmax(90px,1fr) 40px;gap:8px;margin-bottom:6px;align-items:center;";
+        row.innerHTML = `
+            <select class="input-field font-group-3 forge-requirement-stat">${selectOptions(STAT_NAMES, "Характеристика")}</select>
+            <input type="number" class="input-field font-group-3 forge-requirement-min" min="1" value="${Number(minimum) || 0}" placeholder="Минимум">
+            <button type="button" class="settings-btn btn-dark forge-remove-requirement" title="Удалить" style="padding:8px;">×</button>`;
+        row.querySelector(".forge-requirement-stat").value = stat;
+        return row;
+    }
+
+    function renderRequirements(entries = []) {
+        const container = document.getElementById("forgeRequirementsContainer");
+        if (!container) return;
+        container.innerHTML = "";
+        (entries.length ? entries : [["str", 0]]).forEach(([stat, minimum]) => container.appendChild(createRequirementRow(stat, minimum)));
+    }
+
+    function collectRequirements() {
+        const stats = {};
+        document.querySelectorAll("#forgeRequirementsContainer .forge-requirement-row").forEach(row => {
+            const stat = row.querySelector(".forge-requirement-stat").value;
+            const minimum = parseInt(row.querySelector(".forge-requirement-min").value, 10) || 0;
+            if (stat && minimum > 0) stats[stat] = Math.max(stats[stat] || 0, minimum);
+        });
+        return stats;
+    }
+
     function setSelectValue(id, value) {
         const select = document.getElementById(id);
         if (!select) return;
@@ -348,6 +401,15 @@ function attachForgeListeners() {
             select.add(new Option(value, value));
         }
         select.value = value;
+    }
+
+    function syncArmorDexControls() {
+        const addsDex = document.getElementById("forgeArmorAddsDex")?.value === "true";
+        const maxDex = document.getElementById("forgeArmorMaxDex");
+        if (!maxDex) return;
+        maxDex.disabled = !addsDex;
+        maxDex.title = addsDex ? "Оставьте пустым, чтобы не ограничивать модификатор Ловкости" : "Сначала включите добавление Ловкости";
+        if (!addsDex) maxDex.value = "";
     }
 
     document.body.addEventListener("click", (e) => {
@@ -365,6 +427,8 @@ function attachForgeListeners() {
         } else if (e.target.id === "forgeSaveBtn") saveItemToFile();
         else if (e.target.id === "forgeAddEffectBtn") {
             document.getElementById("forgeEffectsContainer")?.appendChild(createEffectRow());
+        } else if (e.target.id === "forgeAddRequirementBtn") {
+            document.getElementById("forgeRequirementsContainer")?.appendChild(createRequirementRow());
         } else if (e.target.classList.contains("forge-remove-effect")) {
             const row = e.target.closest(".forge-effect-row");
             const container = row?.parentElement;
@@ -372,6 +436,11 @@ function attachForgeListeners() {
             if (container && !container.children.length) {
                 container.appendChild(createEffectRow());
             }
+        } else if (e.target.classList.contains("forge-remove-requirement")) {
+            const row = e.target.closest(".forge-requirement-row");
+            const container = row?.parentElement;
+            row?.remove();
+            if (container && !container.children.length) container.appendChild(createRequirementRow());
         }
         else if (e.target !== searchInput && e.target !== searchResults) {
             if (searchResults) searchResults.style.display = "none";
@@ -382,6 +451,7 @@ function attachForgeListeners() {
     document.getElementById("forgeEffectsContainer")?.addEventListener("change", e => {
         if (e.target.classList.contains("forge-effect-kind")) updateEffectRow(e.target.closest(".forge-effect-row"));
     });
+    document.getElementById("forgeArmorAddsDex")?.addEventListener("change", syncArmorDexControls);
 
     function saveItemToFile() {
         const key = document.getElementById("forgeKey").value.trim();
@@ -394,10 +464,16 @@ function attachForgeListeners() {
         const attackBonus = parseInt(document.getElementById("forgeAttackBonus").value, 10) || 0;
         const scalingAbility = document.getElementById("forgeScalingAbility").value;
         const properties = document.getElementById("forgeProperties").value.trim();
-        const ac = document.getElementById("forgeAc").value.trim();
+        const baseArmorAc = parseInt(document.getElementById("forgeAc").value, 10) || 0;
+        const armorAddsDex = document.getElementById("forgeArmorAddsDex").value === "true";
+        const armorMaxDexRaw = document.getElementById("forgeArmorMaxDex").value;
+        const armorMaxDex = armorMaxDexRaw === "" ? null : Math.max(0, parseInt(armorMaxDexRaw, 10) || 0);
+        const ac = baseArmorAc
+            ? `${baseArmorAc}${armorAddsDex ? ` + модификатор Лов${armorMaxDex !== null ? ` (макс. ${armorMaxDex})` : ""}` : ""}`
+            : "";
         const stealth = document.getElementById("forgeStealth").value;
         const forgeEffects = collectEffectRows();
-        const acBonus = parseInt(document.getElementById("forgeAcBonus").value) || 0;
+        const statRequirements = collectRequirements();
         const retaliationDice = document.getElementById("forgeRetaliationDice").value.trim();
         const retaliationType = document.getElementById("forgeRetaliationType").value.trim();
         const signed = value => value > 0 ? `+${value}` : `${value}`;
@@ -421,6 +497,10 @@ function attachForgeListeners() {
             htmlDesc += `<tr style='border-bottom:1px solid var(--border-color);'><td style='color:var(--accent-success); padding:6px;'>Спасбросок:</td><td style='padding:6px;'><b>${signed(bonus)} — ${STAT_NAMES[target]}</b> при надевании</td></tr>`;
         });
         if (forgeEffects.initiative) htmlDesc += `<tr style='border-bottom:1px solid var(--border-color);'><td style='color:var(--accent-success); padding:6px;'>Инициатива:</td><td style='padding:6px;'><b>${signed(forgeEffects.initiative)}</b> при надевании</td></tr>`;
+        if (forgeEffects.ac) htmlDesc += `<tr style='border-bottom:1px solid var(--border-color);'><td style='color:var(--accent-success); padding:6px;'>КЗ:</td><td style='padding:6px;'><b>${signed(forgeEffects.ac)}</b> при надевании</td></tr>`;
+        forgeEffects.damage.forEach(effect => {
+            htmlDesc += `<tr style='border-bottom:1px solid var(--border-color);'><td style='color:var(--accent); padding:6px;'>Дополнительный урон:</td><td style='padding:6px;'><b>${effect.value} (${damageTypesData[effect.type]?.name || effect.type})</b> при надевании</td></tr>`;
+        });
         Object.entries(forgeEffects.spellSlots).forEach(([level, count]) => {
             htmlDesc += `<tr style='border-bottom:1px solid var(--border-color);'><td style='color:var(--accent-success); padding:6px;'>Ячейки заклинаний:</td><td style='padding:6px;'><b>${signed(count)} яч. ${level}-го уровня</b> при надевании</td></tr>`;
         });
@@ -432,7 +512,9 @@ function attachForgeListeners() {
         forgeEffects.vulnerabilities.forEach(target => {
             htmlDesc += `<tr style='border-bottom:1px solid var(--border-color);'><td style='color:var(--accent); padding:6px;'>Уязвимость:</td><td style='padding:6px;'><b>${damageTypesData[target]?.name || target}</b> при надевании</td></tr>`;
         });
-        if (acBonus) htmlDesc += `<tr style='border-bottom:1px solid var(--border-color);'><td style='color:var(--accent-success); padding:6px;'>Бонус КЗ:</td><td style='padding:6px;'><b>${signed(acBonus)}</b> при надевании</td></tr>`;
+        Object.entries(statRequirements).forEach(([stat, minimum]) => {
+            htmlDesc += `<tr style='border-bottom:1px solid var(--border-color);'><td style='color:var(--accent-yellow); padding:6px;'>Требование:</td><td style='padding:6px;'><b>${STAT_NAMES[stat]} ${minimum}</b>; иначе эффекты предмета не действуют</td></tr>`;
+        });
         if (retaliationDice) htmlDesc += `<tr style='border-bottom:1px solid var(--border-color);'><td style='color:var(--accent-yellow); padding:6px;'>Ответный урон:</td><td style='padding:6px;'><b>${retaliationDice} (${retaliationType || "Без типа"})</b>, когда по владельцу попадают атакой</td></tr>`;
         htmlDesc += `<tr><td style='color:var(--accent-success); padding:6px;'>Стоимость/Вес:</td><td style='padding:6px;'><b>${costStr}</b> / ${weight} фнт.</td></tr></table>`;
         const effectText = document.getElementById("forgeEffect").value.trim();
@@ -456,19 +538,27 @@ function attachForgeListeners() {
             newItem.scalingAbility = scalingAbility;
         }
         if (attackBonus) newItem.attackBonus = attackBonus;
-        if (ac) { newItem.ac = ac; newItem.stealth = stealth; }
+        if (ac) {
+            newItem.ac = ac;
+            newItem.baseAc = baseArmorAc;
+            newItem.addsDex = armorAddsDex;
+            newItem.maxDexBonus = armorMaxDex;
+            newItem.stealth = stealth;
+        }
+        if (Object.keys(statRequirements).length) newItem.requirements = { stats: statRequirements };
 
         const equipEffects = {};
         if (Object.keys(forgeEffects.stats).length) equipEffects.stats = forgeEffects.stats;
         if (Object.keys(forgeEffects.skills).length) equipEffects.skills = forgeEffects.skills;
         if (Object.keys(forgeEffects.saves).length) equipEffects.saves = forgeEffects.saves;
         if (forgeEffects.initiative) equipEffects.initiative = forgeEffects.initiative;
+        if (forgeEffects.ac) equipEffects.ac = forgeEffects.ac;
+        if (forgeEffects.damage.length) equipEffects.damage = forgeEffects.damage;
         if (Object.keys(forgeEffects.spellSlots).length) equipEffects.spellSlots = forgeEffects.spellSlots;
         if (forgeEffects.preparedSpells) equipEffects.preparedSpells = forgeEffects.preparedSpells;
         if (forgeEffects.preparedCantrips) equipEffects.preparedCantrips = forgeEffects.preparedCantrips;
         if (forgeEffects.resistances.length) equipEffects.resistances = forgeEffects.resistances;
         if (forgeEffects.vulnerabilities.length) equipEffects.vulnerabilities = forgeEffects.vulnerabilities;
-        if (acBonus) equipEffects.ac = acBonus;
         if (retaliationDice) {
             equipEffects.retaliationDamage = {
                 dice: retaliationDice,
@@ -512,13 +602,21 @@ function attachForgeListeners() {
         document.getElementById("forgeAttackBonus").value = item.attackBonus || 0;
         document.getElementById("forgeScalingAbility").value = item.scalingAbility || "auto";
         document.getElementById("forgeProperties").value = item.properties || "";
-        document.getElementById("forgeAc").value = item.ac || "";
+        const legacyBaseAc = parseInt(item.ac, 10) || 0;
+        const legacyAddsDex = (item.ac || "").includes("Лов");
+        const legacyMaxDex = (item.ac || "").match(/(?:макс\.|max\.?)\s*(\d+)/i);
+        document.getElementById("forgeAc").value = item.baseAc ?? legacyBaseAc ?? "";
+        document.getElementById("forgeArmorAddsDex").value = String(item.addsDex ?? legacyAddsDex);
+        document.getElementById("forgeArmorMaxDex").value = item.maxDexBonus ?? (legacyMaxDex ? legacyMaxDex[1] : "");
+        syncArmorDexControls();
         document.getElementById("forgeStealth").value = item.stealth === "Помеха" ? "Помеха" : "—";
         const effectRows = [
             ...Object.entries(item.equipEffects?.stats || {}).map(([target, bonus]) => ["stat", target, bonus]),
             ...Object.entries(item.equipEffects?.skills || {}).map(([target, bonus]) => ["skill", target, bonus]),
             ...Object.entries(item.equipEffects?.saves || {}).map(([target, bonus]) => ["save", target, bonus]),
             ...(item.equipEffects?.initiative ? [["initiative", "initiative", item.equipEffects.initiative]] : []),
+            ...(item.equipEffects?.ac ? [["ac", "ac", item.equipEffects.ac]] : []),
+            ...(item.equipEffects?.damage || []).map(effect => ["damage", effect.type, effect.value]),
             ...Object.entries(item.equipEffects?.spellSlots || {}).map(([level, count]) => ["spell_slot", level, count]),
             ...(item.equipEffects?.preparedSpells ? [["prepared_spells", "prepared", item.equipEffects.preparedSpells]] : []),
             ...(item.equipEffects?.preparedCantrips ? [["prepared_cantrips", "cantrips", item.equipEffects.preparedCantrips]] : []),
@@ -526,7 +624,7 @@ function attachForgeListeners() {
             ...(item.equipEffects?.vulnerabilities || []).map(target => ["vulnerability", target, 0])
         ];
         renderEffectRows(effectRows);
-        document.getElementById("forgeAcBonus").value = item.equipEffects?.ac || 0;
+        renderRequirements(Object.entries(item.requirements?.stats || {}));
         document.getElementById("forgeRetaliationDice").value = item.equipEffects?.retaliationDamage?.dice || "";
         setSelectValue("forgeRetaliationType", item.equipEffects?.retaliationDamage?.type || "");
         let cleanDesc = item.description || "";
@@ -540,12 +638,15 @@ function attachForgeListeners() {
         document.querySelectorAll("#itemForgeModal input:not(#forgeKey), #itemForgeModal textarea").forEach(el => el.value = "");
         document.getElementById("forgeScalingAbility").value = "auto";
         document.getElementById("forgeStealth").value = "—";
+        document.getElementById("forgeArmorAddsDex").value = "false";
+        document.getElementById("forgeArmorMaxDex").value = "";
+        syncArmorDexControls();
         document.getElementById("forgeCategory").value = "Снаряжение";
         document.getElementById("forgeType").value = "Снаряжение";
         document.getElementById("forgeDamageType").value = "";
         document.getElementById("forgeRetaliationType").value = "";
         document.getElementById("forgeAttackBonus").value = 0;
         renderEffectRows();
-        document.getElementById("forgeAcBonus").value = 0;
+        renderRequirements();
     }
 }
