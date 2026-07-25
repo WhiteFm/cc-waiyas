@@ -1013,6 +1013,8 @@ html, body, .app-wrapper, .tab-content-container, .three-column-grid, .ui-col {
     border-radius: 11px;
     background: rgba(0,0,0,.20);
     border: 1px solid rgba(255,255,255,.07);
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .forge-search-block::before {
@@ -1054,6 +1056,8 @@ html, body, .app-wrapper, .tab-content-container, .three-column-grid, .ui-col {
     background:
         linear-gradient(135deg, rgba(var(--forge-tone), .065), transparent 48%),
         rgba(8,11,16,.34);
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .forge-section-general { --forge-tone: 148, 163, 184; }
@@ -1099,6 +1103,14 @@ html, body, .app-wrapper, .tab-content-container, .three-column-grid, .ui-col {
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 12px;
+    width: 100%;
+    min-width: 0;
+}
+
+.forge-fields-grid > *,
+.forge-effect-row > *,
+.forge-requirement-row > * {
+    min-width: 0;
 }
 
 .forge-fields-general {
@@ -1166,7 +1178,8 @@ html, body, .app-wrapper, .tab-content-container, .three-column-grid, .ui-col {
 }
 
 #forgeEffect {
-    min-height: 135px;
+    height: 230px;
+    min-height: 230px;
     resize: vertical;
     line-height: 1.55;
 }
