@@ -158,6 +158,18 @@ function renderForgeUI() {
                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px;">
                     <div><label class="font-group-3" style="color: var(--text-muted); font-size: 11px;">Урон:</label><input type="text" id="forgeDamage" class="input-field font-group-3" placeholder="1к8"></div>
                     <div><label class="font-group-3" style="color: var(--text-muted); font-size: 11px;">Тип урона:</label><input type="text" id="forgeDamageType" class="input-field font-group-3" placeholder="Рубящий"></div>
+                    <div>
+                        <label class="font-group-3" style="color: var(--text-muted); font-size: 11px;">Скейл от характеристики:</label>
+                        <select id="forgeScalingAbility" class="input-field font-group-3">
+                            <option value="auto">Автоматически</option>
+                            <option value="str">Сила</option>
+                            <option value="dex">Ловкость</option>
+                            <option value="con">Телосложение</option>
+                            <option value="int">Интеллект</option>
+                            <option value="wis">Мудрость</option>
+                            <option value="cha">Харизма</option>
+                        </select>
+                    </div>
                     <div style="grid-column: 1 / -1;"><label class="font-group-3" style="color: var(--text-muted); font-size: 11px;">Свойства оружия:</label><input type="text" id="forgeProperties" class="input-field font-group-3" placeholder="Фехтовальное, Лёгкое"></div>
                     <div><label class="font-group-3" style="color: var(--text-muted); font-size: 11px;">Класс Защиты (КЗ):</label><input type="text" id="forgeAc" class="input-field font-group-3" placeholder="14 + мод Лов"></div>
                     <div><label class="font-group-3" style="color: var(--text-muted); font-size: 11px;">Скрытность:</label><input type="text" id="forgeStealth" class="input-field font-group-3" placeholder="Помеха / —"></div>
@@ -218,11 +230,15 @@ function attachForgeListeners() {
         const weight = parseFloat(document.getElementById("forgeWeight").value) || 0;
         const damage = document.getElementById("forgeDamage").value.trim();
         const damageType = document.getElementById("forgeDamageType").value.trim();
+        const scalingAbility = document.getElementById("forgeScalingAbility").value;
         const properties = document.getElementById("forgeProperties").value.trim();
         const ac = document.getElementById("forgeAc").value.trim();
 
         let htmlDesc = `<table style='width:100%; text-align:left; border-collapse:collapse; margin-bottom:8px; font-size:13px;'>`;
-        if (damage) htmlDesc += `<tr style='border-bottom:1px solid var(--border-color);'><td style='color:var(--accent-success); padding:6px;'>Урон:</td><td style='padding:6px;'><b>${damage} (${damageType})</b></td></tr>`;
+        if (damage) {
+            const abilityNames = { auto: "автоматически", str: "Сила", dex: "Ловкость", con: "Телосложение", int: "Интеллект", wis: "Мудрость", cha: "Харизма" };
+            htmlDesc += `<tr style='border-bottom:1px solid var(--border-color);'><td style='color:var(--accent-success); padding:6px;'>Урон:</td><td style='padding:6px;'><b>${damage} (${damageType})</b><br><small>Скейл: ${abilityNames[scalingAbility]}</small></td></tr>`;
+        }
         if (properties) htmlDesc += `<tr style='border-bottom:1px solid var(--border-color);'><td style='color:var(--text-muted); padding:6px;'>Свойства:</td><td style='padding:6px;'>${properties}</td></tr>`;
         if (ac) htmlDesc += `<tr style='border-bottom:1px solid var(--border-color);'><td style='color:var(--accent-success); padding:6px;'>КЗ:</td><td style='padding:6px;'><b>${ac}</b></td></tr>`;
         htmlDesc += `<tr><td style='color:var(--accent-success); padding:6px;'>Стоимость/Вес:</td><td style='padding:6px;'><b>${costStr}</b> / ${weight} фнт.</td></tr></table>`;
@@ -235,7 +251,12 @@ function attachForgeListeners() {
             cost: costStr, weight: weight, singleWeight: weight, description: htmlDesc,
             costInCp: window.parseCurrencyToCp ? window.parseCurrencyToCp(costStr) : 0
         };
-        if (damage) { newItem.damage = damage; newItem.damageType = damageType; newItem.properties = properties; }
+        if (damage) {
+            newItem.damage = damage;
+            newItem.damageType = damageType;
+            newItem.properties = properties;
+            newItem.scalingAbility = scalingAbility;
+        }
         if (ac) { newItem.ac = ac; newItem.stealth = document.getElementById("forgeStealth").value.trim(); }
 
         customItemsData[key] = newItem;
@@ -269,6 +290,7 @@ function attachForgeListeners() {
         document.getElementById("forgeWeight").value = item.weight || 0;
         document.getElementById("forgeDamage").value = item.damage || "";
         document.getElementById("forgeDamageType").value = item.damageType || "";
+        document.getElementById("forgeScalingAbility").value = item.scalingAbility || "auto";
         document.getElementById("forgeProperties").value = item.properties || "";
         document.getElementById("forgeAc").value = item.ac || "";
         document.getElementById("forgeStealth").value = item.stealth || "";
@@ -279,5 +301,6 @@ function attachForgeListeners() {
 
     function clearForgeForm() {
         document.querySelectorAll("#itemForgeModal input:not(#forgeKey), #itemForgeModal textarea").forEach(el => el.value = "");
+        document.getElementById("forgeScalingAbility").value = "auto";
     }
 }

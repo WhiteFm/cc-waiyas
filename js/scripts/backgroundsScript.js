@@ -13,6 +13,8 @@ import { equipmentsData } from '../data/equipments/equipmentsData.js';
 import { weaponsData } from '../data/equipments/weaponsData.js';
 import { armorsData } from '../data/equipments/armorsData.js';
 import { instrumentsData } from '../data/equipments/instrumentsData.js';
+import { ammoData } from '../data/equipments/ammoData.js';
+import { substancesData } from '../data/equipments/substancesData.js';
 
 const STAT_NAMES = {
     str: "Сила", dex: "Ловкость", con: "Телосложение",
@@ -58,8 +60,16 @@ const TOOL_CHOICES = {
 };
 
 function findItemKeyByName(ruName) {
-    const cleanName = ruName.split(' (')[0].trim();
-    const all = {...equipmentsData, ...weaponsData, ...armorsData, ...instrumentsData};
+    const cleanName = ruName.replace(/\s*\(\d+\s*шт\.\)\s*$/i, '').trim();
+    const all = {
+        ...equipmentsData, ...weaponsData, ...armorsData,
+        ...instrumentsData, ...ammoData, ...substancesData
+    };
+
+    for (let key in all) {
+        if (all[key].name.toLowerCase() === ruName.toLowerCase()) return key;
+    }
+
     for (let key in all) {
         if (all[key].name.toLowerCase() === cleanName.toLowerCase()) return key;
     }
@@ -91,7 +101,7 @@ export function openBackgroundModal(bgKey) {
                 <div style="flex:1;">
                     <span style="font-size:12px; color:var(--text-muted);">Характеристика +1:</span>
                     <select id="statPlus1" class="input-field">
-                        ${bg.stats.map(s => `<option value="${s}">${STAT_NAMES[s]}</option>`).join('')}
+                        ${bg.stats.map((s, i) => `<option value="${s}"${i === 1 ? ' selected' : ''}>${STAT_NAMES[s]}</option>`).join('')}
                     </select>
                 </div>
             </div>
@@ -161,7 +171,7 @@ export function openBackgroundModal(bgKey) {
                 </div>
                 <div style="flex:1;">
                     <span style="font-size:12px; color:var(--text-muted);">Характеристика +1:</span>
-                    <select id="statPlus1" class="input-field">${bg.stats.map(s => `<option value="${s}">${STAT_NAMES[s]}</option>`).join('')}</select>
+                    <select id="statPlus1" class="input-field">${bg.stats.map((s, i) => `<option value="${s}"${i === 1 ? ' selected' : ''}>${STAT_NAMES[s]}</option>`).join('')}</select>
                 </div>`;
         }
     }));

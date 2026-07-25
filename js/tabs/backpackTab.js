@@ -371,7 +371,7 @@ function renderEquippedSlots() {
         const disp = document.getElementById(`disp_${slot}`); const slotEl = document.getElementById(`slot_${slot}`);
         if (!disp) return;
         if (eq[slot]) {
-            const item = ALL_ITEMS_MAP[eq[slot].key]; disp.innerHTML = `<span style="color:var(--text-color); font-weight:bold; font-size:13px; text-align:center;">${item.name}</span> <span style="font-size:10px; color:var(--accent); cursor:pointer; margin-top:4px;">[Снять]</span>`;
+            const item = ALL_ITEMS_MAP[eq[slot].key] || { name: eq[slot].key, description: "Описание предмета не найдено." }; disp.innerHTML = `<span style="color:var(--text-color); font-weight:bold; font-size:13px; text-align:center;">${item.name}</span> <span style="font-size:10px; color:var(--accent); cursor:pointer; margin-top:4px;">[Снять]</span>`;
             if (slotEl) { slotEl.setAttribute("data-inspector", formatInspector(item)); slotEl.onclick = () => window.invManager.unequipItem(slot); }
         } else {
             disp.innerHTML = `<span style="color:var(--text-muted);">Пусто</span>`; if (slotEl) { slotEl.setAttribute("data-inspector", `Свободный слот`); slotEl.onclick = null; }
@@ -383,7 +383,7 @@ function renderEquippedSlots() {
         if (!disp) continue;
         const itemObj = eq.rings[i];
         if (itemObj) {
-            const item = ALL_ITEMS_MAP[itemObj.key]; disp.innerHTML = `<div style="display:flex; flex-direction:column; align-items:center;"><span style="color:var(--text-color); font-weight:bold; font-size:13px; text-align:center;">${item.name}</span> <span style="font-size:10px; color:var(--accent); cursor:pointer; margin-top:4px;">[Снять]</span></div>`;
+            const item = ALL_ITEMS_MAP[itemObj.key] || { name: itemObj.key, description: "Описание предмета не найдено." }; disp.innerHTML = `<div style="display:flex; flex-direction:column; align-items:center;"><span style="color:var(--text-color); font-weight:bold; font-size:13px; text-align:center;">${item.name}</span> <span style="font-size:10px; color:var(--accent); cursor:pointer; margin-top:4px;">[Снять]</span></div>`;
             if (slotEl) { slotEl.setAttribute("data-inspector", formatInspector(item)); slotEl.onclick = () => window.invManager.unequipItem("rings", itemObj.instanceId); }
         } else {
             disp.innerHTML = `<span style="color:var(--text-muted);">Пусто</span>`; if (slotEl) { slotEl.setAttribute("data-inspector", `Свободный слот для кольца`); slotEl.onclick = null; }
@@ -403,23 +403,27 @@ function renderEquippedSlots() {
 
         const itemObj = eq.weapons.find(w => w.equipSlot === slot);
         if (itemObj) {
-            const item = ALL_ITEMS_MAP[itemObj.key]; let extraHtml = "";
+            const item = ALL_ITEMS_MAP[itemObj.key] || { name: itemObj.key, description: "Описание предмета не найдено." }; let extraHtml = "";
             if (item.damage) {
-                let statKey = "str";
-                if (item.properties?.includes("Фехтовальное")) statKey = (charData.stats.dex?.val || 0) > (charData.stats.str?.val || 0) ? "dex" : "str";
-                else if (item.category?.includes("дальнобойное")) statKey = "dex";
+                let statKey = item.scalingAbility;
+                if (!["str", "dex", "con", "int", "wis", "cha"].includes(statKey)) {
+                    statKey = "str";
+                    if (item.properties?.includes("Фехтовальное")) statKey = (charData.stats.dex?.val || 0) > (charData.stats.str?.val || 0) ? "dex" : "str";
+                    else if (item.category?.includes("дальнобойное")) statKey = "dex";
+                }
 
                 const statMod = charData.stats[statKey]?.mod || 0;
                 let isProf = false;
-                if (item.category.includes("Простое")) {
-                    if (charData.proficiencies.weapon.simple === 2) isProf = true;
-                    else if (charData.proficiencies.weapon.simple === 1 && (item.properties.includes("Лёгкое") || item.properties.includes("Фехтовальное"))) isProf = true;
-                } else if (item.category.includes("Воинское")) {
-                    if (charData.proficiencies.weapon.martial === 2) isProf = true;
-                    else if (charData.proficiencies.weapon.martial === 1 && (item.properties.includes("Лёгкое") || item.properties.includes("Фехтовальное"))) isProf = true;
+                const weaponProficiencies = charData.proficiencies?.weapon || {};
+                if (item.category?.includes("Простое")) {
+                    if (weaponProficiencies.simple === 2) isProf = true;
+                    else if (weaponProficiencies.simple === 1 && (item.properties?.includes("Лёгкое") || item.properties?.includes("Фехтовальное"))) isProf = true;
+                } else if (item.category?.includes("Воинское")) {
+                    if (weaponProficiencies.martial === 2) isProf = true;
+                    else if (weaponProficiencies.martial === 1 && (item.properties?.includes("Лёгкое") || item.properties?.includes("Фехтовальное"))) isProf = true;
                 }
 
-                const pb = charData.origin.pb || 2;
+                const pb = charData.origin?.pb || 2;
                 let atkMod = statMod + (isProf ? pb : 0);
                 let dmgMod = statMod;
 
