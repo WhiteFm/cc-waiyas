@@ -79,3 +79,9 @@ export const cloaksData = {
         description: generateUniversalItemHTML({ type: "Плащ", rarity: "Необычный", attunement: "Требуется настройка", cost: "400 ЗМ", weight: "1.0 фнт", effect: "Проверки Восприятия, направленные на вас, совершаются с Помехой, и вы совершаете с Преимуществом Скрытность." })
     }
 };
+
+const cloakEquipEffects = {
+    robe_of_the_archmagi: { baseAc: 15, baseAcAddsDex: true },
+    cloak_of_protection: { ac: 1 }
+};
+Object.entries(cloakEquipEffects).forEach(([key, effects]) => { cloaksData[key].equipEffects = effects; });

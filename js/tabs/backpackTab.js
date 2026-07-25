@@ -175,8 +175,8 @@ class InventoryManager {
                 if (existing) existing.count += oldItem.count; else charData.inventory.storage.push({ ...oldItem });
             }
             itemToMove.count = 1; charData.inventory.equipped[targetSlot] = itemToMove; this._reduceOrRemoveFromStorage(itemIndex, invItem, 1);
-            if (targetSlot === "armor") syncAllSkillsUI();
         }
+        syncAllSkillsUI();
         renderInventoryUI();
     }
     _reduceOrRemoveFromStorage(index, item, countToReduce = 1) {
@@ -209,7 +209,7 @@ class InventoryManager {
         if (removedItem) {
             const existing = charData.inventory.storage.find(i => i.key === removedItem.key && i.charges === removedItem.charges);
             if (existing) existing.count += removedItem.count; else charData.inventory.storage.push({ ...removedItem });
-            if (slotType === "armor") syncAllSkillsUI();
+            syncAllSkillsUI();
             renderInventoryUI();
         }
     }
@@ -578,7 +578,7 @@ window.openRingReplaceModal = function(instanceId) {
             const itemIndex = charData.inventory.storage.findIndex(i => i.instanceId === instanceId);
             const invItem = charData.inventory.storage[itemIndex]; let itemToMove = { ...invItem, count: 1 };
             rings.splice(index, 0, itemToMove); window.invManager._reduceOrRemoveFromStorage(itemIndex, invItem, 1);
-            renderInventoryUI(); modal.classList.remove("visible");
+            syncAllSkillsUI(); renderInventoryUI(); modal.classList.remove("visible");
         };
     };
     setupBtn("ringReplaceBtn_0", 0); setupBtn("ringReplaceBtn_1", 1);

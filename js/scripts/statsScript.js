@@ -9,6 +9,7 @@ import { applyFeatBonuses } from './attributesScript.js';
 import { armorsData } from '../data/equipments/armorsData.js';
 import { instrumentsData } from '../data/equipments/instrumentsData.js';
 import { customItemsData } from '../data/customItems.js';
+import { collectEquipmentEffects } from './equipmentEffects.js';
 
 export { charData, charData as charState };
 
@@ -249,16 +250,19 @@ export function recalculateStats() {
     charData.hitDice.max = level;
     if (charData.hitDice.current > charData.hitDice.max) charData.hitDice.current = charData.hitDice.max;
 
+    const equipmentEffects = collectEquipmentEffects(charData);
     let totalPointBuyCost = 0;
     ['str', 'dex', 'con', 'int', 'wis', 'cha'].forEach(key => {
         const statObj = charData.stats[key];
 
-        let bonus = charData.bonuses?.stats?.[key] || 0;
+        let bonus = (charData.bonuses?.stats?.[key] || 0) + (equipmentEffects.stats[key] || 0);
         if (charData.backgroundState && charData.backgroundState.statsApplied) {
             bonus += charData.backgroundState.statsApplied[key] || 0;
         }
 
         statObj.val = statObj.base + bonus;
+        if (equipmentEffects.statCaps[key]) statObj.val = Math.min(statObj.val, equipmentEffects.statCaps[key]);
+        statObj.val = Math.max(statObj.val, equipmentEffects.statMinimums[key] || 0);
         statObj.mod = Math.floor((statObj.val - 10) / 2);
         statObj.saveMod = statObj.mod + (statObj.saveProf ? charData.origin.pb : 0);
 
@@ -287,6 +291,7 @@ export function recalculateStats() {
         if (sk.state === 0) sk.mod = statMod + jackBonus;
         else if (sk.state === 1) sk.mod = statMod + charData.origin.pb;
         else if (sk.state === 2) sk.mod = statMod + (charData.origin.pb * 2);
+        sk.mod += (equipmentEffects.skills[skKey] || 0) + (equipmentEffects.allSkills || 0);
     });
 
     let baseInitiative = charData.stats.dex.mod;
@@ -367,6 +372,11 @@ export function recalculateStats() {
         baseAc = unarmoredAc;
     }
 
+    if (equipmentEffects.baseAc) {
+        const equipmentBaseAc = equipmentEffects.baseAc + (equipmentEffects.baseAcAddsDex ? charData.stats.dex.mod : 0);
+        baseAc = Math.max(baseAc, equipmentBaseAc);
+    }
+
     if (eqShield) {
         const shieldDef = armorsData[eqShield.key] || customItemsData[eqShield.key];
         if (charData.proficiencies.armor.shield) {
@@ -390,7 +400,8 @@ export function recalculateStats() {
     charData.combat.initiative = baseInitiative + (charData.bonuses?.initiative || 0);
     charData.combat.passivePerception = 10 + charData.skills.perception.mod;
     charData.combat.stealthDisadvantage = hasStealthDisadv;
-    charData.combat.ac = baseAc + (charData.bonuses?.ac || 0);
+    charData.combat.ac = baseAc + (charData.bonuses?.ac || 0) + equipmentEffects.ac;
+    charData.combat.retaliationDamage = equipmentEffects.retaliationDamage;
 
     window.charData = charData;
     return totalPointBuyCost;

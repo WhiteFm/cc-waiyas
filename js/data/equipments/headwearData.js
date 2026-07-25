@@ -213,3 +213,5 @@ function generateHeadgearHTML(type, rarity, attunement, cost, weight, effect) {
     </table>
     `;
 }
+
+headwearData.headband_of_intellect.equipEffects = { statMinimums: { int: 19 } };

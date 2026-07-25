@@ -34,7 +34,7 @@ export const charData = {
     combat: {
         initiative: 0, speed: 30, climbSpeed: 15, flySpeed: 0, ac: 10,
         passivePerception: 10, stealthDisadvantage: false, heroicInspiration: false,
-        resistances: {}, vulnerabilities: {}, conditions: {}, charges: {}
+        resistances: {}, vulnerabilities: {}, conditions: {}, charges: {}, retaliationDamage: []
     },
 
     proficiencies: {

@@ -30,3 +30,15 @@ export const beltsData = {
         description: generateUniversalItemHTML({ type: "Пояс", rarity: "Легендарный", attunement: "Требуется настройка", cost: "200 000 ЗМ", weight: "1.5 фнт", effect: "Пока вы носите этот пояс, ваше значение Силы становится равно 29." })
     }
 };
+
+const beltStrengthMinimums = {
+    belt_of_stone_giant_strength: 23,
+    belt_of_frost_giant_strength: 23,
+    belt_of_cloud_giant_strength: 27,
+    belt_of_fire_giant_strength: 25,
+    belt_of_hill_giant_strength: 21,
+    belt_of_storm_giant_strength: 29
+};
+Object.entries(beltStrengthMinimums).forEach(([key, value]) => {
+    beltsData[key].equipEffects = { statMinimums: { str: value } };
+});

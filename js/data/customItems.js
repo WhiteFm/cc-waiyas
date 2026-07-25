@@ -12,6 +12,12 @@ export const customItemsData = {
         "damage": "1к4+1",
         "damageType": "Колющий",
         "properties": "Лёгкое, Метательное (дис. 20/60)",
-        "scalingAbility": "str"
+        "scalingAbility": "str",
+        "equipEffects": {
+            "skills": {
+                "sleight_of_hand": 1,
+                "stealth": 1
+            }
+        }
     }
 };

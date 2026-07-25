@@ -191,3 +191,5 @@ export const ringsData = {
         })
     }
 };
+
+ringsData.ring_of_protection.equipEffects = { ac: 1 };

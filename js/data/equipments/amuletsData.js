@@ -10,7 +10,7 @@ export const amuletsData = {
         description: generateUniversalItemHTML({ type: "Амулет", rarity: "Необычный", attunement: "Требуется настройка", cost: "400 ЗМ", weight: "0.2 фнт", effect: "Пока вы носите этот амулет, вас нельзя выбрать целью заклинаний Прорицания или воспринять через магические сенсоры ясновидения, если вы сами этого не позволите." })
     },
     amulet_of_health: {
-        name: "Aмулет здоровья", type: "Амулет", rarity: "Редкий", attunement: "Требуется настройка", cost: "4 000 ЗМ", weight: 0.2,
+        name: "Амулет здоровья", type: "Амулет", rarity: "Редкий", attunement: "Требуется настройка", cost: "4 000 ЗМ", weight: 0.2,
         description: generateUniversalItemHTML({ type: "Амулет", rarity: "Редкий", attunement: "Требуется настройка", cost: "4 000 ЗМ", weight: "0.2 фнт", effect: "Пока вы носите этот амулет, ваше значение Телосложения равно 19. Амулет не оказывает эффекта, если ваше значение Телосложения без него уже равно 19 или выше." })
     },
     amulet_of_the_planes: {
@@ -130,3 +130,16 @@ export const amuletsData = {
         description: generateUniversalItemHTML({ type: "Амулет", rarity: "Легендарный", attunement: "Требуется настройка (Жрец, Паладин)", cost: "200 000 ЗМ", weight: "0.3 фнт", effect: "Исчадие или Нежить получает 8к6 урона Излучением, коснувшись талисмана. +2 к броскам атаки заклинаниями." })
     }
 };
+
+const amuletEquipEffects = {
+    amulet_of_health: { statMinimums: { con: 19 } },
+    ioun_stone_protection: { ac: 1 },
+    ioun_stone_leadership: { stats: { cha: 2 }, statCaps: { cha: 20 } },
+    ioun_stone_agility: { stats: { dex: 2 }, statCaps: { dex: 20 } },
+    ioun_stone_insight: { stats: { wis: 2 }, statCaps: { wis: 20 } },
+    ioun_stone_intellect: { stats: { int: 2 }, statCaps: { int: 20 } },
+    ioun_stone_strength: { stats: { str: 2 }, statCaps: { str: 20 } },
+    ioun_stone_fortitude: { stats: { con: 2 }, statCaps: { con: 20 } },
+    stone_of_good_luck: { allSkills: 1 }
+};
+Object.entries(amuletEquipEffects).forEach(([key, effects]) => { amuletsData[key].equipEffects = effects; });

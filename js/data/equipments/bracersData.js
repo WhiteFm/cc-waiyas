@@ -42,3 +42,9 @@ export const bracersData = {
         description: generateUniversalItemHTML({ type: "Наручи", rarity: "Обычный", attunement: "Нет", cost: "100 ЗМ", weight: "0.2 фнт", effect: "Действием Магия вы можете снять одну из трех бусин с браслета, чтобы получить Преимущество в проверках Атлетики на 1 минуту." })
     }
 };
+
+const bracerEquipEffects = {
+    bracers_of_defense: { ac: 2, requiresUnarmored: true },
+    gloves_of_thievery: { skills: { sleight_of_hand: 5 } }
+};
+Object.entries(bracerEquipEffects).forEach(([key, effects]) => { bracersData[key].equipEffects = effects; });

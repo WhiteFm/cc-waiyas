@@ -130,6 +130,19 @@ export function syncAllSkillsUI() {
     if (document.getElementById("combatFlyDisplay")) document.getElementById("combatFlyDisplay").innerText = charData.combat.flySpeed + " фт.";
     if (document.getElementById("acDisplay")) document.getElementById("acDisplay").innerText = charData.combat.ac;
 
+    const retaliationCard = document.getElementById("retaliationDamageCard");
+    const retaliationContainer = document.getElementById("retaliationDamageContainer");
+    const retaliationDamage = charData.combat.retaliationDamage || [];
+    if (retaliationCard && retaliationContainer) {
+        retaliationCard.style.display = retaliationDamage.length ? "block" : "none";
+        retaliationContainer.innerHTML = retaliationDamage.map(effect => `
+            <div class="skill-item-row" style="padding:7px 4px;">
+                <span class="skill-name">${effect.itemName}</span>
+                <span style="color:var(--accent-yellow);font-weight:bold;">${effect.dice} ${effect.type}</span>
+            </div>
+        `).join("");
+    }
+
     const stealthEl = document.getElementById("stealthDisadvantageDisplay");
     if (stealthEl) {
         stealthEl.innerText = charData.combat.stealthDisadvantage ? "Есть" : "Нет";
