@@ -128,10 +128,12 @@ export function syncAllSkillsUI() {
     if (document.getElementById("passivePerceptionDisplay")) document.getElementById("passivePerceptionDisplay").innerText = charData.combat.passivePerception;
     if (document.getElementById("heroicInspirationCb")) document.getElementById("heroicInspirationCb").checked = !!charData.combat.heroicInspiration;
     if (document.getElementById("combatSpeedDisplay")) document.getElementById("combatSpeedDisplay").innerText = charData.combat.speed + " фт.";
-    if (document.getElementById("combatVisionDisplay")) document.getElementById("combatVisionDisplay").innerText = charData.combat.vision || "Обычное";
+    if (document.getElementById("combatVisionDisplay")) document.getElementById("combatVisionDisplay").innerText = (Number(charData.combat.vision) || 0) + " фт.";
     if (document.getElementById("combatDarkvisionDisplay")) document.getElementById("combatDarkvisionDisplay").innerText = (charData.combat.darkvision || 0) + " фт.";
+    if (document.getElementById("combatBlindSightDisplay")) document.getElementById("combatBlindSightDisplay").innerText = charData.combat.blindSight ? "Есть" : "Нет";
     if (document.getElementById("combatClimbDisplay")) document.getElementById("combatClimbDisplay").innerText = charData.combat.climbSpeed + " фт.";
     if (document.getElementById("combatFlyDisplay")) document.getElementById("combatFlyDisplay").innerText = charData.combat.flySpeed + " фт.";
+    if (document.getElementById("combatSwimDisplay")) document.getElementById("combatSwimDisplay").innerText = (charData.combat.swimSpeed || 0) + " фт.";
     if (document.getElementById("acDisplay")) document.getElementById("acDisplay").innerText = charData.combat.ac;
 
     const retaliationCard = document.getElementById("retaliationDamageCard");

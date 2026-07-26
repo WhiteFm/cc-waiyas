@@ -32,7 +32,7 @@ export const charData = {
     deathSaves: { successes: 0, failures: 0 },
 
     combat: {
-        initiative: 0, speed: 30, climbSpeed: 15, flySpeed: 0, vision: "Обычное", darkvision: 0, ac: 10,
+        initiative: 0, speed: 30, climbSpeed: 15, flySpeed: 0, swimSpeed: 0, vision: 60, darkvision: 0, blindSight: false, ac: 10,
         passivePerception: 10, stealthDisadvantage: false, heroicInspiration: false,
         resistances: {}, vulnerabilities: {}, conditions: {}, charges: {}, retaliationDamage: []
     },

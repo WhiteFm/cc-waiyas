@@ -59,6 +59,7 @@ export function collectEquipmentEffects(charData) {
         saves: {},
         initiative: 0,
         speed: 0,
+        speeds: { walk: 0, climb: 0, fly: 0, swim: 0 },
         speedMinimum: 0,
         darkvision: 0,
         darkvisionMinimum: 0,
@@ -108,6 +109,10 @@ export function collectEquipmentEffects(charData) {
         });
         totals.initiative += Number(effects.initiative) || 0;
         totals.speed += Number(effects.speed) || 0;
+        totals.speeds.walk += Number(effects.speed) || 0;
+        Object.entries(effects.speeds || {}).forEach(([key, value]) => {
+            if (totals.speeds[key] !== undefined) totals.speeds[key] += Number(value) || 0;
+        });
         totals.speedMinimum = Math.max(totals.speedMinimum, Number(effects.speedMinimum) || 0);
         totals.darkvision += Number(effects.darkvision) || 0;
         totals.darkvisionMinimum = Math.max(totals.darkvisionMinimum, Number(effects.darkvisionMinimum) || 0);

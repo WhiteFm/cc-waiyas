@@ -305,7 +305,7 @@ export function recalculateStats() {
     charData.combat.speed = Math.max(
         equipmentEffects.speedMinimum,
         0,
-        baseSpeed + (charData.bonuses?.speed || 0) + equipmentEffects.speed
+        baseSpeed + (charData.bonuses?.speed || 0) + equipmentEffects.speeds.walk
     );
     const raceText = JSON.stringify(raceObj || {});
     const raceDarkvisionValues = [...raceText.matchAll(/Т[ёе]мн(?:ое|ого) зрени[ея][^0-9]{0,40}(\d+)\s*(?:фут|фт)/gi)]
@@ -321,11 +321,17 @@ export function recalculateStats() {
     if (levelForVision >= 3 && classKeyForVision === "ranger" && subclassKeyForVision === "gloom_stalker") {
         classDarkvision = 60;
     }
-    charData.combat.vision = "Обычное";
+    charData.combat.vision = 60;
     charData.combat.darkvision = Math.max(
         equipmentEffects.darkvisionMinimum,
         Math.max(raceDarkvision, classDarkvision) + equipmentEffects.darkvision
     );
+    const hasBlindSightFeat = Boolean(
+        charData.selectedFeats?.skulker
+        || charData.selectedFeats?.fs_blind_fighting
+    );
+    charData.combat.blindSight = hasBlindSightFeat
+        || (classKeyForVision === "ranger" && levelForVision >= 18);
 
     let baseAc = 10 + charData.stats.dex.mod;
     let hasStealthDisadv = false;
@@ -422,9 +428,10 @@ export function recalculateStats() {
         charData.combat.speed = Math.max(0, charData.combat.speed - 10);
     }
 
-    charData.combat.climbSpeed = Math.floor(charData.combat.speed / 2);
+    charData.combat.climbSpeed = Math.max(0, Math.floor(charData.combat.speed / 2) + equipmentEffects.speeds.climb);
     const hasFly = (charData.origin.raceKey === "dragonborn" && level >= 5) || (charData.origin.raceKey === "aasimar" && level >= 3);
-    charData.combat.flySpeed = hasFly ? charData.combat.speed : 0;
+    charData.combat.flySpeed = Math.max(0, (hasFly ? charData.combat.speed : 0) + equipmentEffects.speeds.fly);
+    charData.combat.swimSpeed = Math.max(0, equipmentEffects.speeds.swim);
 
     charData.combat.initiative = baseInitiative + (charData.bonuses?.initiative || 0) + equipmentEffects.initiative;
     charData.combat.passivePerception = 10 + charData.skills.perception.mod;

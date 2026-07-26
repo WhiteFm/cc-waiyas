@@ -50,6 +50,12 @@ const EFFECT_TYPE_NAMES = {
     prepared_cantrips: "Подготовленные заговоры", damage: "Урон", ac: "КЗ",
     speed: "Скорость", darkvision: "Тёмное зрение"
 };
+const SPEED_TYPE_NAMES = {
+    walk: "Скорость ходьбы",
+    climb: "Скорость лазания",
+    fly: "Скорость полёта",
+    swim: "Скорость плавания"
+};
 const SPELL_LEVEL_NAMES = Object.fromEntries(
     Array.from({ length: 9 }, (_, index) => [String(index + 1), `${index + 1} уровень`])
 );
@@ -296,7 +302,7 @@ function attachForgeListeners() {
         if (kind === "prepared_spells") return { prepared: "Максимум подготовленных" };
         if (kind === "prepared_cantrips") return { cantrips: "Максимум подготовленных заговоров" };
         if (kind === "ac") return { ac: "Класс Защиты" };
-        if (kind === "speed") return { speed: "Скорость ходьбы" };
+        if (kind === "speed") return SPEED_TYPE_NAMES;
         if (kind === "darkvision") return { darkvision: "Дальность Тёмного зрения" };
         return { initiative: "Инициатива" };
     }
@@ -306,13 +312,12 @@ function attachForgeListeners() {
         const targetSelect = row.querySelector(".forge-effect-target");
         const bonusInput = row.querySelector(".forge-effect-bonus");
         targetSelect.innerHTML = selectOptions(getEffectTargets(kind), "Выберите цель");
-        if (["initiative", "prepared_spells", "prepared_cantrips", "ac", "speed", "darkvision"].includes(kind)) {
+        if (["initiative", "prepared_spells", "prepared_cantrips", "ac", "darkvision"].includes(kind)) {
             const fixedTargets = {
                 initiative: ["initiative", "Инициатива"],
                 prepared_spells: ["prepared", "Максимум подготовленных"],
                 prepared_cantrips: ["cantrips", "Максимум подготовленных заговоров"],
                 ac: ["ac", "Класс Защиты"],
-                speed: ["speed", "Скорость ходьбы"],
                 darkvision: ["darkvision", "Дальность Тёмного зрения"]
             };
             const [fixedTarget, fixedLabel] = fixedTargets[kind];
@@ -350,7 +355,7 @@ function attachForgeListeners() {
     }
 
     function collectEffectRows() {
-        const result = { stats: {}, skills: {}, saves: {}, initiative: 0, speed: 0, darkvision: 0, ac: 0, resistances: [], vulnerabilities: [], damage: [], spellSlots: {}, preparedSpells: 0, preparedCantrips: 0 };
+        const result = { stats: {}, skills: {}, saves: {}, initiative: 0, speeds: { walk: 0, climb: 0, fly: 0, swim: 0 }, darkvision: 0, ac: 0, resistances: [], vulnerabilities: [], damage: [], spellSlots: {}, preparedSpells: 0, preparedCantrips: 0 };
         document.querySelectorAll("#forgeEffectsContainer .forge-effect-row").forEach(row => {
             const kind = row.querySelector(".forge-effect-kind").value;
             const target = row.querySelector(".forge-effect-target").value;
@@ -360,7 +365,7 @@ function attachForgeListeners() {
             if (kind === "skill" && target && bonus) result.skills[target] = (result.skills[target] || 0) + bonus;
             if (kind === "save" && target && bonus) result.saves[target] = (result.saves[target] || 0) + bonus;
             if (kind === "initiative" && bonus) result.initiative += bonus;
-            if (kind === "speed" && bonus) result.speed += bonus;
+            if (kind === "speed" && target && bonus) result.speeds[target] += bonus;
             if (kind === "darkvision" && bonus) result.darkvision += bonus;
             if (kind === "ac" && bonus) result.ac += bonus;
             if (kind === "damage" && target && rawBonus) result.damage.push({ type: target, value: rawBonus });
@@ -562,7 +567,7 @@ function attachForgeListeners() {
         if (Object.keys(forgeEffects.skills).length) equipEffects.skills = forgeEffects.skills;
         if (Object.keys(forgeEffects.saves).length) equipEffects.saves = forgeEffects.saves;
         if (forgeEffects.initiative) equipEffects.initiative = forgeEffects.initiative;
-        if (forgeEffects.speed) equipEffects.speed = forgeEffects.speed;
+        if (Object.values(forgeEffects.speeds).some(Boolean)) equipEffects.speeds = forgeEffects.speeds;
         if (forgeEffects.darkvision) equipEffects.darkvision = forgeEffects.darkvision;
         if (forgeEffects.ac) equipEffects.ac = forgeEffects.ac;
         if (forgeEffects.damage.length) equipEffects.damage = forgeEffects.damage;
@@ -627,7 +632,8 @@ function attachForgeListeners() {
             ...Object.entries(item.equipEffects?.skills || {}).map(([target, bonus]) => ["skill", target, bonus]),
             ...Object.entries(item.equipEffects?.saves || {}).map(([target, bonus]) => ["save", target, bonus]),
             ...(item.equipEffects?.initiative ? [["initiative", "initiative", item.equipEffects.initiative]] : []),
-            ...(item.equipEffects?.speed ? [["speed", "speed", item.equipEffects.speed]] : []),
+            ...(item.equipEffects?.speed ? [["speed", "walk", item.equipEffects.speed]] : []),
+            ...Object.entries(item.equipEffects?.speeds || {}).filter(([, bonus]) => bonus).map(([target, bonus]) => ["speed", target, bonus]),
             ...(item.equipEffects?.darkvision ? [["darkvision", "darkvision", item.equipEffects.darkvision]] : []),
             ...(item.equipEffects?.ac ? [["ac", "ac", item.equipEffects.ac]] : []),
             ...(item.equipEffects?.damage || []).map(effect => ["damage", effect.type, effect.value]),
