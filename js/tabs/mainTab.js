@@ -3,6 +3,7 @@
 // ==========================================
 
 import { charData } from '../../saves/tempSave.js';
+import { getReferenceDescription } from '../data/referenceDescriptionsData.js';
 import { syncStatsUI, bindStatsEventListeners, ensureCharDataStructure, levelQueue, processLevelQueue } from '../scripts/statsScript.js';
 import { updateFeatsSelect, renderAssignedFeats, bindAttributesEvents, applyFeatBonuses } from '../scripts/attributesScript.js';
 import { updateRacesSelect, bindRacesEvents, applyRaceBonuses } from '../scripts/racesScript.js';
@@ -120,7 +121,7 @@ function openClassModal(key, cls) {
 
     title.innerText = cls.name;
 
-    let fullDesc = `<p style="margin-bottom: 15px; text-align: justify;">${cls.description || "Описание отсутствует."}</p>`;
+    let fullDesc = `<p style="margin-bottom: 15px; text-align: justify;">${getReferenceDescription(cls.name, cls.description || "Описание отсутствует.")}</p>`;
 
     fullDesc += `<div style="background: rgba(0,0,0,0.2); padding: 12px; border-radius: 6px; border-left: 3px solid var(--accent-success); margin-bottom: 15px;">`;
     fullDesc += `<h4 style="color: var(--accent-success); margin-bottom: 10px; margin-top: 0;">Характеристики класса:</h4>`;
@@ -140,7 +141,7 @@ function openClassModal(key, cls) {
         fullDesc += `<div style="background: rgba(0,0,0,0.2); padding: 12px; border-radius: 6px; border-left: 3px solid var(--accent); margin-bottom: 15px;">`;
         fullDesc += `<h4 style="color: var(--accent); margin-bottom: 10px; margin-top: 0;">Умения 1-го уровня:</h4>`;
         features.forEach(f => {
-            fullDesc += `<div style="margin-bottom: 8px; font-size: 13.5px; text-align: justify;"><b style="color:var(--accent-yellow);">${f.name}:</b> ${f.description}</div>`;
+            fullDesc += `<div style="margin-bottom: 8px; font-size: 13.5px; text-align: justify;"><b style="color:var(--accent-yellow);">${f.name}:</b> ${getReferenceDescription(f.name, f.description)}</div>`;
         });
         fullDesc += `</div>`;
     }
@@ -262,7 +263,8 @@ export function updateLanguagesUI() {
             categories[catName].sort((a, b) => a.name.localeCompare(b.name, 'ru'));
             selectHtml += `<optgroup label="${catName}">`;
             categories[catName].forEach(lang => {
-                selectHtml += `<option value="${lang.key}" data-inspector="<b>${lang.name}:</b> ${lang.description}">${lang.name}</option>`;
+                const inspectorText = `<b>${lang.name}:</b> ${getReferenceDescription(lang.name, lang.description)}`.replace(/"/g, '&quot;');
+                selectHtml += `<option value="${lang.key}" data-inspector="${inspectorText}">${lang.name}</option>`;
             });
             selectHtml += `</optgroup>`;
         }
@@ -274,7 +276,7 @@ export function updateLanguagesUI() {
     knownLangs.forEach((key, index) => {
         const lang = languagesData[key];
         if (lang) {
-            const desc = `<b>${lang.name} (${lang.category}):</b> ${lang.description}<br><br><i>Нажмите, чтобы забыть язык.</i>`;
+            const desc = `<b>${lang.name} (${lang.category}):</b> ${getReferenceDescription(lang.name, lang.description)}<br><br><i>Нажмите, чтобы забыть язык.</i>`;
             badgesHtml += `
                 <div class="interactive-node selected-lang-btn" data-index="${index}" data-inspector="${desc.replace(/"/g, '&quot;')}"
                      style="display: flex; align-items: center; padding: 6px 12px; background: rgba(46, 196, 182, 0.15); border: 1px solid var(--accent-success); border-radius: 6px; cursor: pointer;">
@@ -334,7 +336,7 @@ export function updateInstrumentsUI() {
             categories[catName].sort((a, b) => a.name.localeCompare(b.name, 'ru'));
             selectHtml += `<optgroup label="${catName}">`;
             categories[catName].forEach(inst => {
-                let desc = `<b>${inst.name} (${inst.cost}):</b><br><b>Характеристика:</b> ${inst.stat || 'Нет'} | <b>Вес:</b> ${inst.weight}<br>${inst.description}`;
+                let desc = `<b>${inst.name} (${inst.cost}):</b><br><b>Характеристика:</b> ${inst.stat || 'Нет'} | <b>Вес:</b> ${inst.weight}<br>${getReferenceDescription(inst.name, inst.description)}`;
                 selectHtml += `<option value="${inst.key}" data-inspector="${desc.replace(/"/g, '&quot;')}">${inst.name}</option>`;
             });
             selectHtml += `</optgroup>`;
@@ -350,7 +352,7 @@ export function updateInstrumentsUI() {
 
         if (inst) {
             const displayName = inst.name;
-            let desc = `<b>${displayName} (${inst.cost}):</b><br>${inst.description}<br><br><i>Нажмите, чтобы удалить владение.</i>`;
+            let desc = `<b>${displayName} (${inst.cost}):</b><br>${getReferenceDescription(inst.name, inst.description)}<br><br><i>Нажмите, чтобы удалить владение.</i>`;
 
             badgesHtml += `
                 <div class="interactive-node selected-inst-btn" data-index="${index}" data-inspector="${desc.replace(/"/g, '&quot;')}"

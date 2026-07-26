@@ -302,7 +302,30 @@ export function recalculateStats() {
 
     const raceObj = racesData[charData.origin.raceKey];
     let baseSpeed = raceObj?.speed || 30;
-    charData.combat.speed = baseSpeed + (charData.bonuses?.speed || 0);
+    charData.combat.speed = Math.max(
+        equipmentEffects.speedMinimum,
+        0,
+        baseSpeed + (charData.bonuses?.speed || 0) + equipmentEffects.speed
+    );
+    const raceText = JSON.stringify(raceObj || {});
+    const raceDarkvisionValues = [...raceText.matchAll(/Т[ёе]мн(?:ое|ого) зрени[ея][^0-9]{0,40}(\d+)\s*(?:фут|фт)/gi)]
+        .map(match => Number(match[1]) || 0);
+    const raceDarkvision = Number(raceObj?.darkvision) || Math.max(0, ...raceDarkvisionValues);
+    const classKeyForVision = charData.origin?.classKey;
+    const subclassKeyForVision = charData.origin?.subclassKey;
+    const levelForVision = Number(charData.origin?.level) || 1;
+    let classDarkvision = 0;
+    if (levelForVision >= 3 && classKeyForVision === "monk" && subclassKeyForVision === "shadow") {
+        classDarkvision = 60;
+    }
+    if (levelForVision >= 3 && classKeyForVision === "ranger" && subclassKeyForVision === "gloom_stalker") {
+        classDarkvision = 60;
+    }
+    charData.combat.vision = "Обычное";
+    charData.combat.darkvision = Math.max(
+        equipmentEffects.darkvisionMinimum,
+        Math.max(raceDarkvision, classDarkvision) + equipmentEffects.darkvision
+    );
 
     let baseAc = 10 + charData.stats.dex.mod;
     let hasStealthDisadv = false;

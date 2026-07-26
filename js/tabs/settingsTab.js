@@ -25,6 +25,7 @@ import { ringsData } from '../data/equipments/ringsData.js';
 import { substancesData } from '../data/equipments/substancesData.js';
 import { weaponsData } from '../data/equipments/weaponsData.js';
 import { damageTypesData } from '../scripts/combatStatusScript.js';
+import { getReferenceDescription } from '../data/referenceDescriptionsData.js';
 
 const STAT_NAMES = { str: "Сила", dex: "Ловкость", con: "Телосложение", int: "Интеллект", wis: "Мудрость", cha: "Харизма" };
 const SKILL_NAMES = {
@@ -46,7 +47,8 @@ const EFFECT_TYPE_NAMES = {
     stat: "Характеристика", skill: "Навык", initiative: "Инициатива",
     save: "Спасбросок", resistance: "Сопротивление", vulnerability: "Уязвимость",
     spell_slot: "Ячейки заклинаний", prepared_spells: "Подготовленные заклинания",
-    prepared_cantrips: "Подготовленные заговоры", damage: "Урон", ac: "КЗ"
+    prepared_cantrips: "Подготовленные заговоры", damage: "Урон", ac: "КЗ",
+    speed: "Скорость", darkvision: "Тёмное зрение"
 };
 const SPELL_LEVEL_NAMES = Object.fromEntries(
     Array.from({ length: 9 }, (_, index) => [String(index + 1), `${index + 1} уровень`])
@@ -294,6 +296,8 @@ function attachForgeListeners() {
         if (kind === "prepared_spells") return { prepared: "Максимум подготовленных" };
         if (kind === "prepared_cantrips") return { cantrips: "Максимум подготовленных заговоров" };
         if (kind === "ac") return { ac: "Класс Защиты" };
+        if (kind === "speed") return { speed: "Скорость ходьбы" };
+        if (kind === "darkvision") return { darkvision: "Дальность Тёмного зрения" };
         return { initiative: "Инициатива" };
     }
 
@@ -302,12 +306,14 @@ function attachForgeListeners() {
         const targetSelect = row.querySelector(".forge-effect-target");
         const bonusInput = row.querySelector(".forge-effect-bonus");
         targetSelect.innerHTML = selectOptions(getEffectTargets(kind), "Выберите цель");
-        if (["initiative", "prepared_spells", "prepared_cantrips", "ac"].includes(kind)) {
+        if (["initiative", "prepared_spells", "prepared_cantrips", "ac", "speed", "darkvision"].includes(kind)) {
             const fixedTargets = {
                 initiative: ["initiative", "Инициатива"],
                 prepared_spells: ["prepared", "Максимум подготовленных"],
                 prepared_cantrips: ["cantrips", "Максимум подготовленных заговоров"],
-                ac: ["ac", "Класс Защиты"]
+                ac: ["ac", "Класс Защиты"],
+                speed: ["speed", "Скорость ходьбы"],
+                darkvision: ["darkvision", "Дальность Тёмного зрения"]
             };
             const [fixedTarget, fixedLabel] = fixedTargets[kind];
             targetSelect.innerHTML = `<option value="${fixedTarget}">${fixedLabel}</option>`;
@@ -344,7 +350,7 @@ function attachForgeListeners() {
     }
 
     function collectEffectRows() {
-        const result = { stats: {}, skills: {}, saves: {}, initiative: 0, ac: 0, resistances: [], vulnerabilities: [], damage: [], spellSlots: {}, preparedSpells: 0, preparedCantrips: 0 };
+        const result = { stats: {}, skills: {}, saves: {}, initiative: 0, speed: 0, darkvision: 0, ac: 0, resistances: [], vulnerabilities: [], damage: [], spellSlots: {}, preparedSpells: 0, preparedCantrips: 0 };
         document.querySelectorAll("#forgeEffectsContainer .forge-effect-row").forEach(row => {
             const kind = row.querySelector(".forge-effect-kind").value;
             const target = row.querySelector(".forge-effect-target").value;
@@ -354,6 +360,8 @@ function attachForgeListeners() {
             if (kind === "skill" && target && bonus) result.skills[target] = (result.skills[target] || 0) + bonus;
             if (kind === "save" && target && bonus) result.saves[target] = (result.saves[target] || 0) + bonus;
             if (kind === "initiative" && bonus) result.initiative += bonus;
+            if (kind === "speed" && bonus) result.speed += bonus;
+            if (kind === "darkvision" && bonus) result.darkvision += bonus;
             if (kind === "ac" && bonus) result.ac += bonus;
             if (kind === "damage" && target && rawBonus) result.damage.push({ type: target, value: rawBonus });
             if (kind === "spell_slot" && target && bonus) result.spellSlots[target] = (result.spellSlots[target] || 0) + bonus;
@@ -497,6 +505,8 @@ function attachForgeListeners() {
             htmlDesc += `<tr style='border-bottom:1px solid var(--border-color);'><td style='color:var(--accent-success); padding:6px;'>Спасбросок:</td><td style='padding:6px;'><b>${signed(bonus)} — ${STAT_NAMES[target]}</b> при надевании</td></tr>`;
         });
         if (forgeEffects.initiative) htmlDesc += `<tr style='border-bottom:1px solid var(--border-color);'><td style='color:var(--accent-success); padding:6px;'>Инициатива:</td><td style='padding:6px;'><b>${signed(forgeEffects.initiative)}</b> при надевании</td></tr>`;
+        if (forgeEffects.speed) htmlDesc += `<tr style='border-bottom:1px solid var(--border-color);'><td style='color:var(--accent-success); padding:6px;'>Скорость:</td><td style='padding:6px;'><b>${signed(forgeEffects.speed)} фт.</b> при надевании</td></tr>`;
+        if (forgeEffects.darkvision) htmlDesc += `<tr style='border-bottom:1px solid var(--border-color);'><td style='color:var(--accent-success); padding:6px;'>Тёмное зрение:</td><td style='padding:6px;'><b>${signed(forgeEffects.darkvision)} фт.</b> к дальности при надевании</td></tr>`;
         if (forgeEffects.ac) htmlDesc += `<tr style='border-bottom:1px solid var(--border-color);'><td style='color:var(--accent-success); padding:6px;'>КЗ:</td><td style='padding:6px;'><b>${signed(forgeEffects.ac)}</b> при надевании</td></tr>`;
         forgeEffects.damage.forEach(effect => {
             htmlDesc += `<tr style='border-bottom:1px solid var(--border-color);'><td style='color:var(--accent); padding:6px;'>Дополнительный урон:</td><td style='padding:6px;'><b>${effect.value} (${damageTypesData[effect.type]?.name || effect.type})</b> при надевании</td></tr>`;
@@ -552,6 +562,8 @@ function attachForgeListeners() {
         if (Object.keys(forgeEffects.skills).length) equipEffects.skills = forgeEffects.skills;
         if (Object.keys(forgeEffects.saves).length) equipEffects.saves = forgeEffects.saves;
         if (forgeEffects.initiative) equipEffects.initiative = forgeEffects.initiative;
+        if (forgeEffects.speed) equipEffects.speed = forgeEffects.speed;
+        if (forgeEffects.darkvision) equipEffects.darkvision = forgeEffects.darkvision;
         if (forgeEffects.ac) equipEffects.ac = forgeEffects.ac;
         if (forgeEffects.damage.length) equipEffects.damage = forgeEffects.damage;
         if (Object.keys(forgeEffects.spellSlots).length) equipEffects.spellSlots = forgeEffects.spellSlots;
@@ -615,6 +627,8 @@ function attachForgeListeners() {
             ...Object.entries(item.equipEffects?.skills || {}).map(([target, bonus]) => ["skill", target, bonus]),
             ...Object.entries(item.equipEffects?.saves || {}).map(([target, bonus]) => ["save", target, bonus]),
             ...(item.equipEffects?.initiative ? [["initiative", "initiative", item.equipEffects.initiative]] : []),
+            ...(item.equipEffects?.speed ? [["speed", "speed", item.equipEffects.speed]] : []),
+            ...(item.equipEffects?.darkvision ? [["darkvision", "darkvision", item.equipEffects.darkvision]] : []),
             ...(item.equipEffects?.ac ? [["ac", "ac", item.equipEffects.ac]] : []),
             ...(item.equipEffects?.damage || []).map(effect => ["damage", effect.type, effect.value]),
             ...Object.entries(item.equipEffects?.spellSlots || {}).map(([level, count]) => ["spell_slot", level, count]),
@@ -627,7 +641,7 @@ function attachForgeListeners() {
         renderRequirements(Object.entries(item.requirements?.stats || {}));
         document.getElementById("forgeRetaliationDice").value = item.equipEffects?.retaliationDamage?.dice || "";
         setSelectValue("forgeRetaliationType", item.equipEffects?.retaliationDamage?.type || "");
-        let cleanDesc = item.description || "";
+        let cleanDesc = getReferenceDescription(item.name, item.description || "");
         const paragraphs = [...cleanDesc.matchAll(/<p[^>]*>(.*?)<\/p>/gis)];
         document.getElementById("forgeEffect").value = paragraphs.length
             ? paragraphs.map(match => match[1].replace(/<br\s*\/?>/gi, '\n').replace(/<\/?[^>]+(>|$)/g, "")).join("\n\n").trim()

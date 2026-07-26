@@ -4,10 +4,15 @@
 
 import { charData } from '../../saves/tempSave.js';
 import { spellsData } from '../data/magicbookData.js';
+import { getReferenceDescription } from '../data/referenceDescriptionsData.js';
 import {
     ensureMagicBookStructure, getPrimaryCasterMetrics, getSecondaryCasterMetrics,
     getAvailableSpellSlots, getSpellLimits, getAlwaysPreparedSpells
 } from '../scripts/magicbookScript.js';
+
+const escapeInspectorAttribute = (value) => String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/"/g, "&quot;");
 import { initInspector } from './infoTab.js';
 
 export function initMagicbookTab() {
@@ -279,9 +284,11 @@ function renderSpellTables() {
     charData.magic.prepared.forEach((key, idx) => {
         const sp = spellsData[key];
         if (sp) {
+            const fullDescription = getReferenceDescription(sp.name, sp.description);
+            const inspectorDescription = escapeInspectorAttribute(`<b>${sp.name}:</b><br>${fullDescription}`);
             const isAlwaysPrepared = alwaysPrepared.includes(key);
             prepHtml += `
-                <div class="inventory-item-row interactive-node spell-prep-grid-row" data-inspector="<b>${sp.name}:</b><br>${sp.description}">
+                <div class="inventory-item-row interactive-node spell-prep-grid-row" data-inspector="${inspectorDescription}">
                     <span class="highlight-box math-val mini" style="width:28px; text-align:center;">${sp.level}</span>
                     <span class="inv-item-name spell-grid-name">${sp.name}</span>
                     ${isAlwaysPrepared
@@ -300,6 +307,8 @@ function renderSpellTables() {
     charData.magic.known.forEach((key, idx) => {
         const sp = spellsData[key];
         if (sp) {
+            const fullDescription = getReferenceDescription(sp.name, sp.description);
+            const inspectorDescription = escapeInspectorAttribute(`<b>${sp.name} (${sp.school}):</b><br><b>Время:</b> ${sp.time} | <b>Дистанция:</b> ${sp.range}<br><br>${fullDescription}`);
             const isPrep = charData.magic.prepared.includes(key);
             const isAlwaysPrepared = alwaysPrepared.includes(key);
 
@@ -315,7 +324,7 @@ function renderSpellTables() {
             }
 
             bookHtml += `
-                <div class="inventory-item-row interactive-node spell-book-grid-row" data-inspector="<b>${sp.name} (${sp.school}):</b><br><b>Время:</b> ${sp.time} | <b>Дистанция:</b> ${sp.range}<br><br>${sp.description}">
+                <div class="inventory-item-row interactive-node spell-book-grid-row" data-inspector="${inspectorDescription}">
                     <span class="highlight-box math-val mini" style="width:28px; text-align:center;">${sp.level === 0 ? '0' : sp.level}</span>
                     <span class="inv-item-name spell-grid-name">${sp.name}</span>
                     <span class="spell-time-badge">${sp.time}</span>
@@ -373,12 +382,12 @@ function openSpellPickerModal() {
     let currentLvl = -1;
     available.forEach(key => {
         const sp = spellsData[key];
+        const fullDescription = getReferenceDescription(sp.name, sp.description);
         if (sp.level !== currentLvl) {
             currentLvl = sp.level;
             html += `<div style="font-weight:bold; color:var(--accent-yellow); margin: 14px 0 6px 0; border-bottom:1px solid var(--border-color); flex-shrink:0;">${currentLvl === 0 ? 'Заговоры (0 уровень)' : currentLvl + ' уровень'}</div>`;
         }
-        const safeDesc = window.escapeHTML ? window.escapeHTML(sp.description) : sp.description.replace(/"/g, '&quot;');
-        const fullDescHtml = `<b>${sp.name} (${sp.school}, ${sp.level === 0 ? 'Заговор' : sp.level + ' уровень'})</b><br><br><b>Время сотворения:</b> ${sp.time}<br><b>Дистанция:</b> ${sp.range}<br><b>Компоненты:</b> ${[sp.v?'В':null, sp.s?'С':null, sp.m?'М':null].filter(Boolean).join(', ')}<br><b>Концентрация:</b> ${sp.conc?'Да':'Нет'} | <b>Ритуал:</b> ${sp.ritual?'Да':'Нет'}<br><br>${safeDesc}`;
+        const fullDescHtml = escapeInspectorAttribute(`<b>${sp.name} (${sp.school}, ${sp.level === 0 ? 'Заговор' : sp.level + ' уровень'})</b><br><br><b>Время сотворения:</b> ${sp.time}<br><b>Дистанция:</b> ${sp.range}<br><b>Компоненты:</b> ${[sp.v?'В':null, sp.s?'С':null, sp.m?'М':null].filter(Boolean).join(', ')}<br><b>Концентрация:</b> ${sp.conc?'Да':'Нет'} | <b>Ритуал:</b> ${sp.ritual?'Да':'Нет'}<br><br>${fullDescription}`);
 
         html += `
             <label class="spell-picker-row interactive-node spell-picker-item" data-full-desc="${fullDescHtml}">

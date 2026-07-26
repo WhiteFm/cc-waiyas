@@ -9,6 +9,7 @@ import { getDynamicClassFeatures } from '../scripts/classScript.js';
 import { recalculateStats, calculateFeatureCharges } from '../scripts/statsScript.js';
 import { initInspector } from './infoTab.js';
 import { initCombatStatusUI } from '../scripts/combatStatusScript.js';
+import { getReferenceDescription } from '../data/referenceDescriptionsData.js';
 
 export function initSkillsTab() {
     if (!charData.combat.charges) charData.combat.charges = {};
@@ -50,7 +51,8 @@ export function renderSkillsTabFeatures() {
     const processFeatureWithCharges = (name, source, desc, type, entityKey) => {
         if (type === "oneTime") return;
 
-        const safeDesc = window.escapeHTML ? window.escapeHTML(desc) : desc.replace(/"/g, '&quot;');
+        const referenceDesc = getReferenceDescription(name, desc);
+        const safeDesc = window.escapeHTML ? window.escapeHTML(referenceDesc) : referenceDesc.replace(/"/g, '&quot;');
         const maxCharges = calculateFeatureCharges(name);
 
         // ФИКС КАТЕГОРИЗАЦИИ: Строго учитываем type из базы данных.
@@ -126,6 +128,8 @@ export function syncAllSkillsUI() {
     if (document.getElementById("passivePerceptionDisplay")) document.getElementById("passivePerceptionDisplay").innerText = charData.combat.passivePerception;
     if (document.getElementById("heroicInspirationCb")) document.getElementById("heroicInspirationCb").checked = !!charData.combat.heroicInspiration;
     if (document.getElementById("combatSpeedDisplay")) document.getElementById("combatSpeedDisplay").innerText = charData.combat.speed + " фт.";
+    if (document.getElementById("combatVisionDisplay")) document.getElementById("combatVisionDisplay").innerText = charData.combat.vision || "Обычное";
+    if (document.getElementById("combatDarkvisionDisplay")) document.getElementById("combatDarkvisionDisplay").innerText = (charData.combat.darkvision || 0) + " фт.";
     if (document.getElementById("combatClimbDisplay")) document.getElementById("combatClimbDisplay").innerText = charData.combat.climbSpeed + " фт.";
     if (document.getElementById("combatFlyDisplay")) document.getElementById("combatFlyDisplay").innerText = charData.combat.flySpeed + " фт.";
     if (document.getElementById("acDisplay")) document.getElementById("acDisplay").innerText = charData.combat.ac;

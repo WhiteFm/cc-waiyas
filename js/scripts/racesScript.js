@@ -3,6 +3,7 @@
 // ==========================================
 
 import { charData } from '../../saves/tempSave.js';
+import { getReferenceDescription } from '../data/referenceDescriptionsData.js';
 import { racesData, getDynamicRaceFeatures } from '../data/racesData.js';
 import { recalculateStats, syncStatsUI } from './statsScript.js';
 import { renderAssignedFeats } from './attributesScript.js';
@@ -189,7 +190,7 @@ export function applyRaceBonuses() {
 
     dynamicFeatures.forEach(feat => {
         if (feat.type !== "active") {
-            const safeDesc = feat.description.replace(/"/g, '&quot;');
+            const safeDesc = getReferenceDescription(feat.name, feat.description).replace(/"/g, '&quot;');
             passiveHtml += `
                 <div class="interactive-node" data-inspector="<b>${feat.name} (${race.name}):</b><br>${safeDesc}"
                      style="padding: 8px 10px; margin-bottom: 8px; background: rgba(255,255,255,0.03); border: 1px solid var(--border-color); border-radius: 6px;">

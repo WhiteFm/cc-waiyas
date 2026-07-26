@@ -28,6 +28,7 @@ export const footwearData = {
     },
     boots_of_striding_and_springing: {
         name: "Сапоги ходьбы и прыжков", type: "Поножи", weight: 1.5, cost: "400 ЗМ",
+        equipEffects: { speedMinimum: 30 },
         description: generateUniversalItemHTML({ type: "Поножи", rarity: "Необычный", attunement: "Требуется настройка", cost: "400 ЗМ", weight: "1.5 фнт", effect: "Ваша Скорость становится равна 30 футов (не уменьшается бронёй). Вы можете прыгнуть на расстояние до 30 футов, потратив всего 10 футов перемещения." })
     },
     elven_boots: {

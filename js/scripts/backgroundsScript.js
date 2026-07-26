@@ -3,6 +3,7 @@
 // ==========================================
 
 import { charData } from '../../saves/tempSave.js';
+import { getReferenceDescription } from '../data/referenceDescriptionsData.js';
 import { backgroundsData } from '../data/backgroundsData.js';
 import { syncStatsUI } from './statsScript.js';
 import { updateFeatsSelect, renderAssignedFeats, grantFeatInstance, revertFeatInstance } from './attributesScript.js';
@@ -128,7 +129,7 @@ export function openBackgroundModal(bgKey) {
 
     container.innerHTML = `
         <h3 class="font-group-1" style="color:var(--accent-yellow); margin-bottom:10px;">${bg.name}</h3>
-        <p class="font-group-3" style="margin-bottom:15px; text-align:justify;">${bg.description}</p>
+        <p class="font-group-3" style="margin-bottom:15px; text-align:justify;">${getReferenceDescription(bg.name, bg.description)}</p>
 
         <div style="background:#11141a; padding:10px; border-radius:6px; margin-bottom:16px; font-size:13px;">
             <div><b style="color:var(--accent-success);">Черта:</b> ${translatedFeatName}</div>

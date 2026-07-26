@@ -4,6 +4,7 @@
 
 import { charData } from '../../saves/tempSave.js';
 import { featsData } from '../data/attributesData.js';
+import { getReferenceDescription } from '../data/referenceDescriptionsData.js';
 import { racesData, getDynamicRaceFeatures } from '../data/racesData.js';
 import { getDynamicClassFeatures } from './classScript.js';
 import { recalculateStats, syncStatsUI, ensureCharDataStructure, calculateFeatureCharges } from './statsScript.js';
@@ -117,9 +118,9 @@ export function updateFeatsSelect() {
         const tooltipText = `Требования: ${feat.reqText || "Нет"}. ${softReq.ok ? "Доступно" : softReq.reason}`;
 
         if (softReq.ok) {
-            availableHtml += `<option value="${key}" title="${tooltipText}" data-inspector="<b>${feat.name}:</b> Требования: ${feat.reqText}.<br>${feat.description}">${feat.name}</option>`;
+            availableHtml += `<option value="${key}" title="${tooltipText}" data-inspector="<b>${feat.name}:</b> Требования: ${feat.reqText}.<br>${getReferenceDescription(feat.name.split(" [")[0], feat.description).replace(/"/g, '&quot;')}">${feat.name}</option>`;
         } else {
-            unavailableHtml += `<option value="${key}" disabled title="${tooltipText}" style="color: var(--text-muted);" data-inspector="<b>${feat.name} [НЕДОСТУПНО]:</b> ${softReq.reason}.<br>${feat.description}">${feat.name} [${softReq.reason}]</option>`;
+            unavailableHtml += `<option value="${key}" disabled title="${tooltipText}" style="color: var(--text-muted);" data-inspector="<b>${feat.name} [НЕДОСТУПНО]:</b> ${softReq.reason}.<br>${getReferenceDescription(feat.name.split(" [")[0], feat.description).replace(/"/g, '&quot;')}">${feat.name} [${softReq.reason}]</option>`;
         }
     });
 
@@ -195,7 +196,7 @@ export function renderAssignedFeats() {
             else if (choice?.boostedSkill) choiceLabel = ` <span style="font-size:11px; color:var(--text-muted);">[${charData.skills[choice.boostedSkill]?.name || choice.boostedSkill}]</span>`;
 
             badgesHtml += `
-                <div class="interactive-node selected-feat-btn" data-key="${key}" data-idx="${idx}" data-inspector="<b>${feat.name}:</b> ${feat.description}<br><br><i>Нажмите для удаления.</i>"
+                <div class="interactive-node selected-feat-btn" data-key="${key}" data-idx="${idx}" data-inspector="<b>${feat.name}:</b> ${getReferenceDescription(feat.name.split(" [")[0], feat.description).replace(/"/g, '&quot;')}<br><br><i>Нажмите для удаления.</i>"
                      style="display: flex; align-items: center; padding: 6px 12px; background: rgba(218, 34, 42, 0.15); border: 1px solid var(--accent); border-radius: 6px; cursor: pointer;">
                     <span style="color: #fff; font-weight: bold; font-size: 13px;">${feat.name}${choiceLabel}</span>
                 </div>`;
@@ -314,7 +315,7 @@ function openUniversalFeatModal(key, feat) {
 
     title.innerText = feat.name.split(" [")[0];
 
-    let fullDesc = `<b>Описание:</b> ${feat.description}<br><br>`;
+    let fullDesc = `<b>Описание:</b> ${getReferenceDescription(feat.name.split(" [")[0], feat.description)}<br><br>`;
     if (feat.abilities) {
         feat.abilities.forEach(ab => {
             fullDesc += `<span style="color:var(--accent-yellow)">${ab.name}:</span> ${ab.description}<br><br>`;

@@ -15,6 +15,7 @@ export const cloaksData = {
     },
     robe_of_eyes: {
         name: "Мантия глаз", type: "Плащ", weight: 2.5, cost: "4 000 ЗМ",
+        equipEffects: { darkvisionMinimum: 120 },
         description: generateUniversalItemHTML({ type: "Плащ", rarity: "Редкий", attunement: "Требуется настройка", cost: "4 000 ЗМ", weight: "2.5 фнт", effect: "Дарует Преимущество на Восприятие. Тёмное зрение 120 футов и Истинное зрение 120 футов." })
     },
     robe_of_stars: {

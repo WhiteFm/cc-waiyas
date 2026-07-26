@@ -58,6 +58,10 @@ export function collectEquipmentEffects(charData) {
         skills: {},
         saves: {},
         initiative: 0,
+        speed: 0,
+        speedMinimum: 0,
+        darkvision: 0,
+        darkvisionMinimum: 0,
         spellSlots: {},
         preparedSpells: 0,
         preparedCantrips: 0,
@@ -103,6 +107,10 @@ export function collectEquipmentEffects(charData) {
             totals.saves[key] = (totals.saves[key] || 0) + (Number(value) || 0);
         });
         totals.initiative += Number(effects.initiative) || 0;
+        totals.speed += Number(effects.speed) || 0;
+        totals.speedMinimum = Math.max(totals.speedMinimum, Number(effects.speedMinimum) || 0);
+        totals.darkvision += Number(effects.darkvision) || 0;
+        totals.darkvisionMinimum = Math.max(totals.darkvisionMinimum, Number(effects.darkvisionMinimum) || 0);
         Object.entries(effects.spellSlots || {}).forEach(([level, value]) => {
             totals.spellSlots[level] = (totals.spellSlots[level] || 0) + (Number(value) || 0);
         });

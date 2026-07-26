@@ -5,6 +5,7 @@
 import { charData } from '../../saves/tempSave.js';
 import { syncAllSkillsUI } from './skillsTab.js';
 import { spellsData } from '../data/magicbookData.js';
+import { getReferenceDescription } from '../data/referenceDescriptionsData.js';
 import { collectEquipmentEffects, meetsEquipmentRequirements } from '../scripts/equipmentEffects.js';
 
 import { ammoData } from '../data/equipments/ammoData.js';
@@ -673,7 +674,11 @@ function applyCartItems() {
     document.getElementById("itemPickerModal").classList.remove("visible"); renderInventoryUI();
 }
 
-function formatInspector(item) { if (!item) return ""; let html = `<b>${item.name}</b><br>`; if (item.description) html += item.description; return html.replace(/"/g, '&quot;'); }
+function formatInspector(item) {
+    if (!item) return "";
+    const description = getReferenceDescription(item.name, item.description || "");
+    return `<b>${item.name}</b><br>${description}`.replace(/"/g, '&quot;');
+}
 
 export function calculateAndDisplayWeight() {
     let totalWeight = 0;
