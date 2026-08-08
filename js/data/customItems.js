@@ -22,7 +22,7 @@ export const customItemsData = {
     },
     "custom_1786209614468": {
         "name": "Плащ Теней Сумеречного Ветра",
-        "category": "Снаряжение",
+        "category": "Плащ",
         "type": "Плащ",
         "cost": "0 ЗМ",
         "weight": 0,
